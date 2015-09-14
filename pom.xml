@@ -4,11 +4,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>io.authomator</groupId>
-	<artifactId>authomator-api</artifactId>
+	<artifactId>authomator-spring-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>authomator-api</name>
+	<name>authomator-spring-api</name>
 	<description>Authomator API</description>
 
 	<parent>
@@ -55,6 +55,7 @@
 	</dependencies>
 	
 	<build>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
