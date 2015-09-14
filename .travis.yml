@@ -18,7 +18,6 @@ install:
 script:
   mvn test
 
-
 before_install:
   docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   docker build -t authomator/authomator-spring-api .
