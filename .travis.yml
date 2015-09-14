@@ -20,7 +20,5 @@ install:
 
 script:
   - mvn test
-
-deploy:
   - docker build -t authomator/authomator-spring-api .
   - docker push
