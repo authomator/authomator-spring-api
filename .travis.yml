@@ -1,0 +1,14 @@
+language: java
+
+jdk:
+  - openjdk8
+  - oraclejdk8
+
+services:
+  - mongodb
+
+install:
+  mvn install -DskipTests=true
+
+script:
+  mvn test
