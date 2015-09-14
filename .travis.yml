@@ -12,13 +12,15 @@ services:
   - mongodb
   - docker
 
+before_install:
+  - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+
 install:
-  mvn install -DskipTests=true
+  - mvn install -DskipTests=true
 
 script:
-  mvn test
+  - mvn test
 
-before_install:
-  docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-  docker build -t authomator/authomator-spring-api .
-  docker push
+deploy:
+  - docker build -t authomator/authomator-spring-api .
+  - docker push
