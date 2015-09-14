@@ -1,5 +1,7 @@
 language: java
 
+sudo: required
+
 env:
   global:
     - secure: "hSxCwjimhCBNugua4DyIdpLW9+KKaIAH13H5D9EKRjyN7ejKEwh+ASXE5572UdpPsotZNUraZrPHsBJ95t1pPA8bqvQxRXH5MvfbiaB5Wg/XCeEHroEf7a+Vh9WUD4bPjxv1hsMU6kCPZU9MduzLDTZ16Mw3dUUq7pTG86FsiD+PlVfu0UnPWek9iqkVtcBMgDq4q+lRcphkE8sVri/zOfCOGpQy66CdSTQNCv75uw96GgJ8WJuV93zZ8klhMbIee7PAhDxacbM14zI4EJfQxpQjCKdnUBl4AxQ0YYcxG1x2h6eZbTTqpQPUzNbXBdw01nyQLiXR1niQ7en4HgyJfYRDoqhTZZ6O/rfuFs+FN//XI9BfzDPsNA6N81NPvtdiZWuJE52EncX4EO+OBRoSK2Q2RfFIsT/3quAmog0hLD++UUcs0BDJtaxeqlWneET0rIcAMcBvWECNP9AMmSDJgFLyRv9uOHAOL1zCkl3FFdUu1Zx/yenNnc4Kqvnd9XUqiFdfra83YjkQstB9tFjLlhar5PLK3MGUeDPgmIuQ4Pbc9JkLAzRq9Tns+agX3hsPtYf3jJ/u/lcyhD3uEjS7hNkLOa99irV5hkRARqW913S4ZvPyvLfWeCcd4hkH23eiMSvOolhrYXJqeb2Mo+yU8MGN4BJxLZATz3Uurn6HLoU="
@@ -10,13 +12,13 @@ jdk:
   - oraclejdk8
 
 services:
-  - mongodb
   - docker
 
 before_install:
   - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 
 install:
+  - docker run -d -p 127.0.0.1:27017:27017 mongodb:3
   - mvn install -DskipTests=true
 
 script:
