@@ -98,4 +98,22 @@ public class UserService implements IUserService {
 	}
 	
 	
+	/**
+	 * Return the user if this user can receive a forgot password email
+	 * 
+	 * @param email
+	 * @return
+	 * @throws UserNotFoundException
+	 */
+	public User forgot(final String email)  throws UserNotFoundException{
+		User user = userRepository.findByEmail(email);
+		
+		if (user == null){
+			throw new UserNotFoundException(email);
+		}
+		
+		return user;		
+	}
+	
+	
 }
