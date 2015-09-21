@@ -338,33 +338,11 @@ tokens.
 
 For information on the error format see the section above on error formats
 
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
 
 Send password forgotten mail (POST /api/auth/forgot/mail)
-----------------------------------------------------
+---------------------------------------------------------
 
  
-
 ### Parameters (json body)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -393,9 +371,8 @@ https://url.as.specied/with/paths?andOriginalparam=OK&reset=<reset token>
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 204 No Content               Mail was sent correctly
-400 Bad Request              Email is not in use
 403 Forbidden                Url is not acceptable (see body for more info)
-422 Unprocessable Entity     Wrong parameters (see body for error info)
+422 Unprocessable Entity     Wrong parameters or email not known (see body for error info)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
