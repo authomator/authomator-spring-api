@@ -360,7 +360,7 @@ For information on the error format see the section above on error formats
 
  
 
-Send password reset mail (POST /api/auth/reset/mail)
+Send password forgotten mail (POST /api/auth/forgot/mail)
 ----------------------------------------------------
 
  
@@ -377,10 +377,11 @@ Send password reset mail (POST /api/auth/reset/mail)
  
 
 The url specified in the parameters is checked if it allowed (see
-`config.mail.resetLinkAllowedDomains`). The protocol is also checked if
-non-https locations are allowed (see `config.mail.resetLinkAllowNonSecure`). The
+`io.authomator.api.mail.allowedDomains`). The protocol is also checked if
+non-https locations are allowed (see `io.authomator.api.mail.allowedDomains`). The
 url wil have a query parameter added with the reset token, the name of this
 parameter is `reset`. For example this would be the url sent in the email:
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 https://url.as.specied/with/paths?andOriginalparam=OK&reset=<reset token>
