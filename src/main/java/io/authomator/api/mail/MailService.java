@@ -73,7 +73,7 @@ public class MailService {
 		final URL url = new URL(urlString);
 				
 		if (httpsOnly && ( ! url.getProtocol().equals("https"))) {
-			throw new NonSecureUrlException();
+			throw new NonSecureUrlException(urlString);
 		}
 		
 		if (! Arrays.asList(allowedDomains).contains(url.getHost()) ){
