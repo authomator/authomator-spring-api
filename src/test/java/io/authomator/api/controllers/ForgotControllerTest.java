@@ -159,5 +159,30 @@ public class ForgotControllerTest {
     	verify(mockTransport, never()).sendForgotEmail(null, null);
     }
     
+    
+    @Test
+    public void sendMailResetToken_sends_unauthorized_for_unauthorized_domain() throws Exception {
+    	    	
+    	String req = new ForgotPasswordRequestBuilder()
+    			.withEmail(USER_EMAIL)
+    			.withUrl("https://hckz.io")
+    			.buildAsJson();
+    	    	
+    	mockMvc
+    		.perform(
+				post("/api/auth/forgot/mail")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(req)
+			)
+    		.andDo(print())
+            .andExpect(status().isUnauthorized())
+	        .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(jsonPath("$.message").value("The requested url is not allowed"))
+	        .andExpect(jsonPath("$.code").value("UnauthorizedDomain"));
+    	
+    	verify(mockTransport, never()).sendForgotEmail(null, null);
+    }
+    
 	
 }

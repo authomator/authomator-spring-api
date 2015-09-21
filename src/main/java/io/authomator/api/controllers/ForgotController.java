@@ -86,5 +86,10 @@ public class ForgotController {
 		return new GenericError(new Exception("The requested url is not secure"), "NonSecureUrl");
 	}
 		
-	
+	@ExceptionHandler(UnauthorizedDomainException.class)
+	@ResponseStatus(value=HttpStatus.UNAUTHORIZED)
+	public GenericError unauthorizedDomain(UnauthorizedDomainException ex){
+		logger.log(Level.WARN, String.format("User tried to send forgot password to unauthorized domain: %s", ex.getUrl()));
+		return new GenericError(new Exception("The requested url is not allowed"), "UnauthorizedDomain");
+	}
 }
