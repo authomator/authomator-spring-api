@@ -77,7 +77,7 @@ public class MailService {
 		}
 		
 		if (! Arrays.asList(allowedDomains).contains(url.getHost()) ){
-			throw new UnauthorizedDomainException();
+			throw new UnauthorizedDomainException(urlString);
 		}
 		
 		return url;
