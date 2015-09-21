@@ -127,7 +127,7 @@ public class ForgotControllerTest {
 			.andExpect(jsonPath("$.fieldErrors").isArray())
 			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
 			.andExpect(jsonPath("$.fieldErrors[0].field").value("email"))
-	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid email or non existing"))
+	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid or non existing email"))
 	        .andExpect(jsonPath("$.fieldErrors[0].code").value("CredentialsError"));
     	
     	verify(mockTransport, never()).sendForgotEmail(null, null);

@@ -64,14 +64,14 @@ public class ForgotController {
 	
 	private ValidationError createInvalidEmailDto() {
 		ValidationError validationError = new ValidationError();
-		validationError.addFieldError("email", "Invalid email or non existing", "CredentialsError");
+		validationError.addFieldError("email", "Invalid or non existing email", "CredentialsError");
 		return validationError;
 	}
 	
 	@ExceptionHandler(UserNotFoundException.class)
 	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
 	public ValidationError userNotFound(UserNotFoundException ex) {
-		logger.log(Level.WARN, String.format("Unknown user tried to send forgot password: %s", ex.getEmail()));
+		logger.log(Level.WARN, String.format("Unknown user tried to send forgot or reset password: %s", ex.getEmail()));
 		return createInvalidEmailDto();
 	}
 	
