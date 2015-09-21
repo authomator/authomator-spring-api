@@ -40,7 +40,7 @@ public class UserService implements IUserService {
 			throw new RegistrationNotEnabledException();
 		}
 		
-		User existing = userRepository.findOneByEmail(email);
+		User existing = userRepository.findByEmail(email);
 		if (existing != null) {
 			throw new UserAlreadyExistsException(email);
 		}
@@ -65,7 +65,7 @@ public class UserService implements IUserService {
 	 * @return
 	 */
 	public User login(final String email, final String password) throws UserNotFoundException, InvalidCredentialsException {
-		User user = userRepository.findOneByEmail(email);
+		User user = userRepository.findByEmail(email);
 		if (user == null){
 			throw new UserNotFoundException(email);
 		}
