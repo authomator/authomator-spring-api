@@ -7,8 +7,8 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
+import io.authomator.api.exception.EmailTransportException;
 import io.authomator.api.exception.NonSecureUrlException;
 import io.authomator.api.exception.UnauthorizedDomainException;
 
@@ -19,7 +19,7 @@ public class MailService {
 	 * List of acceptable token types to be used in the emails
 	 */
 	public static enum TokenType {
-		forgot
+		reset
 	}
 	
 	/**
@@ -35,6 +35,12 @@ public class MailService {
 	
 	
 	/**
+	 * Injected mail transport service
+	 */
+	private MailTransport transport;
+	
+	
+	/**
 	 * Constructor
 	 * 
 	 * @param httpsOnly
@@ -43,10 +49,12 @@ public class MailService {
 	@Autowired
 	public MailService(
 		@Value("${io.authomator.api.mail.httpsOnly:true}") Boolean httpsOnly,
-		@Value("${io.authomator.api.mail.allowedDomains:authomator.io}") String[] allowedDomains ){
+		@Value("${io.authomator.api.mail.allowedDomains:authomator.io}") String[] allowedDomains,
+		MailTransport transport) {
 		
 		this.httpsOnly = httpsOnly;
 		this.allowedDomains = allowedDomains;
+		this.transport = transport;
 	}
 	
 	/**
@@ -75,7 +83,14 @@ public class MailService {
 		return url;
 	}
 	
-	
+	/**
+	 * Create a url with the forgot/reset token
+	 * 
+	 * @param url
+	 * @param tokenType
+	 * @param token
+	 * @return
+	 */
 	private String createUrl(URL url, final TokenType tokenType, final String token) {
 				
 		StringBuilder sb = new StringBuilder();
@@ -105,8 +120,21 @@ public class MailService {
 	}
 	
 	
-	public void sendForgotPasswordMail(final String email, final String urlString, final String forgotToken) throws MalformedURLException, NonSecureUrlException, UnauthorizedDomainException{
-		final String forgotUrl = createUrl(parseUrl(urlString), TokenType.forgot, forgotToken);
+	/**
+	 * Send the forgot password email
+	 * 
+	 * @param email - email address to send the email to
+	 * @param urlString - the URL to point to when sending the token
+	 * @param forgotToken - the JWT token that authorizes a reset password
+	 * 
+	 * @throws MalformedURLException
+	 * @throws NonSecureUrlException
+	 * @throws UnauthorizedDomainException
+	 * @throws EmailTransportException 
+	 */
+	public Boolean sendForgotPasswordMail(final String email, final String urlString, final String forgotToken) throws MalformedURLException, NonSecureUrlException, UnauthorizedDomainException, EmailTransportException{
+		final String forgotUrl = createUrl(parseUrl(urlString), TokenType.reset, forgotToken);
+		return transport.sendForgotEmail(email, forgotUrl);
 	}
 	
 

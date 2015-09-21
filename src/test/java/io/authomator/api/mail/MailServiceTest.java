@@ -1,11 +1,14 @@
 package io.authomator.api.mail;
 
+import static org.mockito.Mockito.*;
+
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -24,6 +27,7 @@ public class MailServiceTest {
 	@Autowired
 	MailService mailService;
 	
+			
 	@Test(expected=NonSecureUrlException.class)
 	public void parseUrl_checks_if_non_https_is_allowed() throws Throwable{
 		try {
@@ -53,17 +57,30 @@ public class MailServiceTest {
 	@Test
 	public void test_createUrl_leaves_intact(){
 		URL url = ReflectionTestUtils.invokeMethod(mailService, "parseUrl", "https://stefan:weird@authomator.io:8443/t/./index.html?test=me#pageSection");
-		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createUrl", url, MailService.TokenType.forgot, "testje");
+		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createUrl", url, MailService.TokenType.reset, "testje");
 		Assert.assertNotNull(createUrl);		
-		Assert.assertEquals(createUrl, "https://stefan:weird@authomator.io:8443/t/./index.html?test=me&forgot=testje#pageSection");
+		Assert.assertEquals(createUrl, "https://stefan:weird@authomator.io:8443/t/./index.html?test=me&reset=testje#pageSection");
 	}
 	
 	@Test
 	public void test_createUrl_works_with_empty_path(){
 		URL url = ReflectionTestUtils.invokeMethod(mailService, "parseUrl", "https://authomator.io#test");
-		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createUrl", url, MailService.TokenType.forgot, "tokendatadatatata");
+		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createUrl", url, MailService.TokenType.reset, "tokendatadatatata");
 		Assert.assertNotNull(createUrl);
-		Assert.assertEquals(createUrl, "https://authomator.io/?forgot=tokendatadatatata#test");
+		Assert.assertEquals(createUrl, "https://authomator.io/?reset=tokendatadatatata#test");
+	}
+	
+	
+	@Test
+	public void test_send_forgot_calls_transport() throws Throwable {
+		
+		MailTransport mock = Mockito.mock(MailTransport.class);
+		when(mock.sendForgotEmail("test@local.local", "https://authomator.io/test")).thenReturn(true);
+		ReflectionTestUtils.setField(mailService, "transport", mock);
+		
+		mailService.sendForgotPasswordMail("test@local.local", "https://authomator.io/", "test");
+		
+		verify(mock, times(1)).sendForgotEmail("test@local.local", "https://authomator.io/?reset=test");
 	}
 	
 		
