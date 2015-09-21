@@ -101,7 +101,7 @@ public class RefreshControllerTest {
 	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
 			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
 			.andExpect(jsonPath("$.fieldErrors[0].code").value("InvalidToken"))
-			.andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid refresh token"))
+			.andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid jwt token"))
 			.andExpect(jsonPath("$.fieldErrors[0].field").value("token"));
 	    }
     

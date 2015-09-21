@@ -35,7 +35,9 @@ public class RefreshController {
 	JwtService jwtService;
 
 	@RequestMapping(path="/refresh/{refreshToken}", method=RequestMethod.POST)
-	public TokenReply refresh(@PathVariable String refreshToken) throws InvalidJwtException, MalformedClaimException, UserNotFoundException, JoseException {
+	public TokenReply refresh(@PathVariable String refreshToken) throws InvalidJwtException, MalformedClaimException, 
+																		UserNotFoundException, JoseException {
+		
 		JwtClaims refreshClaims = jwtService.validateRefreshToken(refreshToken);
 		User user = userService.refresh(refreshClaims.getSubject());
 		return jwtService.createTokensForUser(user);
@@ -46,32 +48,14 @@ public class RefreshController {
 	 * ------------------------------------------------------------------------------------------
 	 */
 		
-	private ValidationError createInvalidTokenDto() {
-		ValidationError validationError = new ValidationError();
-		validationError.addFieldError("token", "Invalid refresh token", "InvalidToken");
-		return validationError;
-	}
-	
-	
-	@ExceptionHandler(InvalidJwtException.class)
-	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
-	public ValidationError handleInvalidJwtException(InvalidJwtException ex){
-		logger.log(Level.WARN, String.format("Invalid jwt token received: %s", ex.getMessage()));
-		return createInvalidTokenDto();
-	}
-	
-	@ExceptionHandler(MalformedClaimException.class)
-	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
-	public ValidationError handleInvalidJwtException(MalformedClaimException ex){
-		logger.log(Level.ERROR, String.format("Invalid jwt token received, claim malformed: %s", ex.getMessage()));
-		return createInvalidTokenDto();
-	}
-	
+			
 	@ExceptionHandler(UserNotFoundException.class)
 	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
 	public ValidationError handleInvalidJwtException(UserNotFoundException ex){
 		logger.log(Level.ERROR, String.format("Refresh token for nonexisting user: %s", ex.getEmail()));
-		return createInvalidTokenDto();
+		ValidationError validationError = new ValidationError();
+		validationError.addFieldError("token", "Invalid jwt token", "InvalidToken");
+		return validationError;
 	}
 	
 }
