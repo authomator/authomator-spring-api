@@ -97,7 +97,7 @@ public class UserService implements IUserService {
 		return user;
 	}
 	
-	
+	//TODO: implement testing
 	/**
 	 * Return the user if this user can receive a forgot password email
 	 * 
@@ -115,5 +115,25 @@ public class UserService implements IUserService {
 		return user;		
 	}
 	
+	//TODO: implement testing
+	/**
+	 * Reset the user password if this user can reset his password due to forgotten
+	 * 
+	 * @param id
+	 * @param newPassword
+	 * @return User
+	 * @throws UserNotFoundException
+	 */
+	public User resetForgot(final String id, final String newPassword) throws UserNotFoundException{
+		
+		User user = userRepository.findOne(id);
+		
+		if (user == null){
+			throw new UserNotFoundException("mongoId: " + id);
+		}
+		
+		user.setPassword(newPassword);
+		return userRepository.save(user);
+	}
 	
 }
