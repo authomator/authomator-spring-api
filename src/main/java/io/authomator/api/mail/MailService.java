@@ -48,8 +48,8 @@ public class MailService {
 	 */
 	@Autowired
 	public MailService(
-		@Value("${io.authomator.api.mail.httpsOnly:true}") Boolean httpsOnly,
-		@Value("${io.authomator.api.mail.allowedDomains:authomator.io}") String[] allowedDomains,
+		@Value("${io.authomator.api.mail.httpsonly:true}") Boolean httpsOnly,
+		@Value("${io.authomator.api.mail.alloweddomains:authomator.io}") String[] allowedDomains,
 		MailTransport transport) {
 		
 		this.httpsOnly = httpsOnly;
