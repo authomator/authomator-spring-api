@@ -303,5 +303,26 @@ public class JwtService {
 	public JwtClaims validateForgotToken(String jwt) throws InvalidJwtException {
 		return validateInternalToken(jwt, FORGOT_TOKEN_SUFFIX);
 	}
+	
+	/**
+	 * Validate an access token (in compact serialization format)
+	 * NOTICE:: This does NOT perform any ExpectedAudience check !!
+	 * 
+	 * @param jwt
+	 * @return
+	 * @throws InvalidJwtException
+	 */
+	public JwtClaims validateAccessToken(String jwt) throws InvalidJwtException {
+		JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+			.setRequireExpirationTime()
+            .setAllowedClockSkewInSeconds(30)
+            .setRequireSubject()
+            .setExpectedIssuer(issuer)
+            .setSkipDefaultAudienceValidation()
+            .setJwsAlgorithmConstraints(AlgorithmConstraints.DISALLOW_NONE)
+            .setVerificationKey(new HmacKey(secret.getBytes()))
+            .build();
+		return jwtConsumer.process(jwt).getJwtClaims();
+	}
 
 }

@@ -269,6 +269,17 @@ public class JwtServiceTest {
 		return forgot;
 	}
 	
+	private JwtClaims createValidAccessClaims(){
+		JwtClaims access = new JwtClaims();
+		access.setIssuer(defaultIssuer);
+		access.setAudience(defaultAudience);
+		access.setExpirationTimeMinutesInTheFuture(10);
+		access.setIssuedAtToNow();
+		access.setNotBeforeMinutesInThePast(1);
+		access.setSubject("somevaliduserid");
+		return access;
+	}
+	
 	@Test
 	public void validateRefreshToken() throws InvalidJwtException, MalformedClaimException, JoseException{
 		
@@ -309,5 +320,25 @@ public class JwtServiceTest {
 		JsonWebSignature forgotJwt = signClaims(forgot, defaultInternalSecret);
 				
 		jwtService.validateForgotToken(forgotJwt.getCompactSerialization());		
-	}	
+	}
+	
+	
+	@Test
+	public void validateAccessToken () throws Throwable {
+		JwtClaims access = createValidAccessClaims();
+		JsonWebSignature accessJwt = signClaims(access, defaultSecret);
+		
+		JwtClaims claims = jwtService.validateAccessToken(accessJwt.getCompactSerialization());
+		assertNotNull(claims);
+		assertEquals(claims.getSubject(), "somevaliduserid");
+		
+	}
+	
+	@Test(expected=InvalidJwtException.class)
+	public void validateAccessTokenWithInvalidToken() throws Throwable {
+		JwtClaims access = createValidRefreshClaims();
+		JsonWebSignature accessJwt = signClaims(access, defaultInternalSecret);
+		
+		jwtService.validateAccessToken(accessJwt.getCompactSerialization());		
+	}
 }
