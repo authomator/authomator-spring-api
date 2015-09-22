@@ -6,7 +6,6 @@ import javax.validation.Valid;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.hibernate.validator.constraints.Length;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
@@ -26,6 +25,7 @@ import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.service.UserService;
 import io.authomator.api.dto.ForgotPasswordRequest;
 import io.authomator.api.dto.GenericError;
+import io.authomator.api.dto.ResetForgotPasswordRequest;
 import io.authomator.api.dto.TokenReply;
 import io.authomator.api.dto.ValidationError;
 import io.authomator.api.exception.EmailTransportException;
@@ -67,15 +67,14 @@ public class ForgotController {
 		mailService.sendForgotPasswordMail(user.getEmail(), req.getUrl(), jwt.getCompactSerialization());
 	}
 	
-	//TODO: implement testing
+
 	@RequestMapping(path="/forgot/{token}", method=RequestMethod.POST)
 	public TokenReply forgotPassword(
 			@PathVariable final String token, 
-			@Valid @Length(min=6) @RequestBody final String password) throws InvalidJwtException, MalformedClaimException, 
+			@Valid @RequestBody() final ResetForgotPasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
 																			UserNotFoundException, JoseException {
-		
 		JwtClaims claims = jwtService.validateForgotToken(token);
-		User user = userService.resetForgot(claims.getSubject(), password);
+		User user = userService.resetForgot(claims.getSubject(), req.getPassword());
 		return jwtService.createTokensForUser(user);
 	}
 	
