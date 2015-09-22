@@ -136,4 +136,32 @@ public class UserService implements IUserService {
 		return userRepository.save(user);
 	}
 	
+	
+	//TODO: implement testing
+	/**
+	 * Change password for a user by checking his current password before changing it
+	 * 
+	 * @param id
+	 * @param currentPassword
+	 * @param newPassword
+	 * @return
+	 * @throws UserNotFoundException
+	 * @throws InvalidCredentialsException
+	 */
+	public User changePassword(final String id, final String currentPassword, final String newPassword) throws UserNotFoundException, InvalidCredentialsException{
+		
+		User user = userRepository.findOne(id);
+		
+		if (user == null) {
+			throw new UserNotFoundException("mongoId: " + id);
+		}
+		
+		if ( ! BCrypt.checkpw(currentPassword, user.getPassword())){
+			throw new InvalidCredentialsException(user.getEmail(), currentPassword);
+		};
+		
+		user.setPassword(newPassword);
+		return userRepository.save(user);
+		
+	}
 }
