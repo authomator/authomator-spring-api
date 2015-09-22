@@ -159,6 +159,7 @@ Common errors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
     "message": "Validation failed",
+    "code": "ValidationFailed",
     "fieldErrors": [
         {
             "field": "email",
@@ -383,8 +384,6 @@ None
 
  
 
- 
-
 Change user password (POST /api/auth/forgot/:resetToken)
 -------------------------------------------------------
 
@@ -425,9 +424,42 @@ For information on the error format see the section above on error formats
 
 
 
+Change user password (POST /api/auth/change)
+-------------------------------------------------------
+
+### Parameters (json body)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{
+	"at":					The access token of the user
+    "password":				The current password
+    "newPassword":			The new password
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
 
- 
+### Response Codes
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+200 Ok               		 Password was reset correctly
+422 Unprocessable Entity     Wrong parameters or email not known (see body for error info)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
+
+### Response Data
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{
+        "it":"it.token.data",
+        "at":"at.token.data",
+        "rt":"rt.token.data"
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For more information about the JWT tokens see above for the info about the
+tokens.
+
+For information on the error format see the section above on error formats
+
