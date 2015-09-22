@@ -16,7 +16,8 @@ services:
 
 before_install:
   - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-
+  - sudo service docker restart ; sleep 10
+  
 install:
   - docker run -d -p 127.0.0.1:27017:27017 mongo:3
   - mvn install -DskipTests=true
