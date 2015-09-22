@@ -25,7 +25,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 			.antMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 			.antMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
 			.antMatchers(HttpMethod.POST, "/api/auth/refresh/*").permitAll()
-			.antMatchers(HttpMethod.POST, "/api/auth/forgot/mail").permitAll()
+			.antMatchers(HttpMethod.POST, "/api/auth/forgot/*").permitAll()
 			.anyRequest().denyAll();
 	}
 	
