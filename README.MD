@@ -385,7 +385,7 @@ None
 
  
 
-Change user password (POST /api/auth/reset/:resetToken)
+Change user password (POST /api/auth/forgot/:resetToken)
 -------------------------------------------------------
 
 ### Parameters (json body)
@@ -402,16 +402,29 @@ Change user password (POST /api/auth/reset/:resetToken)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 204 No Content               Password was reset correctly
-400 Bad Request              Invalid reset token
-404 Resource Not Found       User does not exist
-422 Unprocessable Entity     Wrong parameters (see body for error info)
+422 Unprocessable Entity     Wrong parameters or email not known (see body for error info)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
 
 ### Response Data
 
-None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{
+        "it":"it.token.data",
+        "at":"at.token.data",
+        "rt":"rt.token.data"
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For more information about the JWT tokens see above for the info about the
+tokens.
+
+For information on the error format see the section above on error formats
+
+
+
+
 
  
 
