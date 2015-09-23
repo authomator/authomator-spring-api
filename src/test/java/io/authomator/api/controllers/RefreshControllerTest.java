@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.HashMap;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,6 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.authomator.api.AuthomatorApiApplication;
 import io.authomator.api.builders.UserBuilder;
@@ -80,10 +83,16 @@ public class RefreshControllerTest {
     public void refresh_with_valid_token() throws Exception {
     	    	
     	TokenReply tokens = jwtService.createTokensForUser(user);
+    	
+    	HashMap<String, String> req = new HashMap<>();
+    	req.put("rt",tokens.getRt());
+    	
     	mockMvc
     		.perform(
-				post("/api/auth/refresh/" + tokens.getRt())
+				post("/api/auth/refresh")
 				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
 			)
     		.andDo(print())
             .andExpect(status().isOk())
@@ -102,7 +111,7 @@ public class RefreshControllerTest {
 			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
 			.andExpect(jsonPath("$.fieldErrors[0].code").value("InvalidToken"))
 			.andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid jwt token"))
-			.andExpect(jsonPath("$.fieldErrors[0].field").value("token"));
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("rt"));
 	    }
     
     
@@ -112,11 +121,16 @@ public class RefreshControllerTest {
     	TokenReply tokens = jwtService.createTokensForUser(user);
     	userRepository.delete(user);
     	
+    	HashMap<String, String> req = new HashMap<>();
+    	req.put("rt",tokens.getRt());
+    	
     	expectGenericValidationError(
 			mockMvc
         		.perform(
-    				post("/api/auth/refresh/" + tokens.getRt())
+    				post("/api/auth/refresh")
     				.accept(APPLICATION_JSON)
+    				.contentType(APPLICATION_JSON)
+    				.content(new ObjectMapper().writeValueAsString(req))
     			)
         		.andDo(print())
 		);    	
@@ -124,14 +138,17 @@ public class RefreshControllerTest {
     
     @Test
     public void refresh_with_invalid_jwt_token() throws Exception {
-    	
-    	String bogus = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ";
+    	    	
+    	HashMap<String, String> req = new HashMap<>();
+    	req.put("rt","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ");
     	
     	expectGenericValidationError(
 	    	mockMvc
 	    		.perform(
-					post("/api/auth/refresh/" + bogus)
+					post("/api/auth/refresh")
 					.accept(APPLICATION_JSON)
+					.contentType(APPLICATION_JSON)
+					.content(new ObjectMapper().writeValueAsString(req))
 				)
 	    		.andDo(print())
 		);
@@ -140,13 +157,17 @@ public class RefreshControllerTest {
     @Test
     public void refresh_with_invalid_token() throws Exception {
     	
-    	String bogus = "ll.dd.dd";
+    	HashMap<String, String> req = new HashMap<>();
+    	req.put("rt","ll.aa.bb");
     	
     	expectGenericValidationError(
 			mockMvc
 				.perform(
-					post("/api/auth/refresh/" + bogus)
+					post("/api/auth/refresh")
 					.accept(APPLICATION_JSON)
+					.accept(APPLICATION_JSON)
+					.contentType(APPLICATION_JSON)
+					.content(new ObjectMapper().writeValueAsString(req))
 				)
 				.andDo(print())
 		);
