@@ -2,7 +2,7 @@ package io.authomator.api.controllers;
 
 import static io.authomator.api.TestUtil.APPLICATION_JSON;
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -94,12 +94,12 @@ public class UpdatePasswordControllerTest {
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("accessToken", token.getCompactSerialization());
-    	req.put("password", USER_PASSWORD);
+    	req.put("oldPassword", USER_PASSWORD);
     	req.put("newPassword", newPassword);
     	
     	mockMvc
     		.perform(
-				post("/api/auth/update-password")
+				put("/password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -127,12 +127,12 @@ public class UpdatePasswordControllerTest {
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("accessToken", token.getCompactSerialization());
-    	req.put("password", "incorrectcurrent");
+    	req.put("oldPassword", "incorrectcurrent");
     	req.put("newPassword", newPassword);
     	
     	mockMvc
     		.perform(
-				post("/api/auth/update-password")
+				put("/password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -166,14 +166,14 @@ public class UpdatePasswordControllerTest {
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("accessToken", token.getCompactSerialization());
-    	req.put("password", USER_PASSWORD);
+    	req.put("oldPassword", USER_PASSWORD);
     	req.put("newPassword", newPassword);
     	
     	userRepository.deleteAll();
     	
     	mockMvc
     		.perform(
-				post("/api/auth/update-password")
+				put("/password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -198,12 +198,12 @@ public class UpdatePasswordControllerTest {
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("accessToken", "someinvalidjwttoken");
-    	req.put("password", USER_PASSWORD);
+    	req.put("oldPassword", USER_PASSWORD);
     	req.put("newPassword", "newPass");
     	
     	mockMvc
     		.perform(
-				post("/api/auth/update-password")
+				put("/password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))

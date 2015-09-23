@@ -27,7 +27,6 @@ import io.authomator.api.exception.UserNotFoundException;
 import io.authomator.api.jwt.JwtService;
 
 @RestController
-@RequestMapping(path="/api/auth")
 public class UpdatePasswordController {
 
 	@Autowired
@@ -43,13 +42,13 @@ public class UpdatePasswordController {
 	 * ------------------------------------------------------------------------------------------
 	 */
 	
-	@RequestMapping(path="/update-password", method=RequestMethod.POST)
+	@RequestMapping(path="/password", method=RequestMethod.PUT)
 	public TokenReply changePassword(@Valid @RequestBody UpdatePasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
 																							UserNotFoundException, InvalidCredentialsException, 
 																							JoseException {
 		
 		JwtClaims claims = jwtService.validateAccessToken(req.getAccessToken());
-		User user = userService.updatePassword(claims.getSubject(), req.getPassword(), req.getNewPassword());
+		User user = userService.updatePassword(claims.getSubject(), req.getOldPassword(), req.getNewPassword());
 		return jwtService.createTokensForUser(user);
 	}
 	

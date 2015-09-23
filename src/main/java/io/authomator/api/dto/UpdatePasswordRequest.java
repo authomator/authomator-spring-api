@@ -9,7 +9,7 @@ public class UpdatePasswordRequest {
 	private String accessToken;
 	
 	@Length(min=6)
-	private String password;
+	private String oldPassword;
 	
 	@Length(min=6)
 	private String newPassword;
@@ -22,12 +22,12 @@ public class UpdatePasswordRequest {
 		this.accessToken = accessToken;
 	}
 
-	public String getPassword() {
-		return password;
+	public String getOldPassword() {
+		return oldPassword;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public void setOldPassword(String oldPassword) {
+		this.oldPassword = oldPassword;
 	}
 
 	public String getNewPassword() {
@@ -36,5 +36,6 @@ public class UpdatePasswordRequest {
 
 	public void setNewPassword(String newPassword) {
 		this.newPassword = newPassword;
-	}	
+	}
+	
 }
