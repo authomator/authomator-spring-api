@@ -68,12 +68,11 @@ public class ForgotController {
 	}
 	
 
-	@RequestMapping(path="/forgot/{token}", method=RequestMethod.POST)
-	public TokenReply forgotPassword(
-			@PathVariable final String token, 
+	@RequestMapping(path="/forgot/reset", method=RequestMethod.POST)
+	public TokenReply forgotPassword(			
 			@Valid @RequestBody() final ResetForgotPasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
 																			UserNotFoundException, JoseException {
-		JwtClaims claims = jwtService.validateForgotToken(token);
+		JwtClaims claims = jwtService.validateForgotToken(req.getFt());
 		User user = userService.resetForgot(claims.getSubject(), req.getPassword());
 		return jwtService.createTokensForUser(user);
 	}

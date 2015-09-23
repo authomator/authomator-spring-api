@@ -226,11 +226,12 @@ public class ForgotControllerTest {
     	JsonWebSignature token = jwtService.getForgotPasswordToken(user);
     	
     	Map<String, String> req = new HashMap<>();
+    	req.put("ft", token.getCompactSerialization());
     	req.put("password", "newpassword");
     	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/" + token.getCompactSerialization())
+				post("/api/auth/forgot/reset")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -259,11 +260,12 @@ public class ForgotControllerTest {
     	userRepository.deleteAll();
     	
     	Map<String, String> req = new HashMap<>();
+    	req.put("ft", token.getCompactSerialization());
     	req.put("password", "newpassword");
     	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/" + token.getCompactSerialization())
+				post("/api/auth/forgot/reset")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -291,11 +293,12 @@ public class ForgotControllerTest {
     	userRepository.deleteAll();
     	
     	Map<String, String> req = new HashMap<>();
+    	req.put("ft", token.getCompactSerialization() + "defect");
     	req.put("password", "newpassword");
     	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/" + token.getCompactSerialization() + "defect")
+				post("/api/auth/forgot/reset")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
