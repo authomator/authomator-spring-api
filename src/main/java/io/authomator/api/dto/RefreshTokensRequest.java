@@ -5,13 +5,14 @@ import org.hibernate.validator.constraints.NotBlank;
 public class RefreshTokensRequest {
 
 	@NotBlank
-	private String rt;
+	private String refreshToken;
 
-	public String getRt() {
-		return rt;
+	public String getRefreshToken() {
+		return refreshToken;
 	}
 
-	public void setRt(String rt) {
-		this.rt = rt;
-	}	
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
+	}
+
 }

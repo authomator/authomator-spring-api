@@ -227,13 +227,14 @@ public class JwtServiceTest {
 		User user = createTestUser();
 		TokenReply tr = jwtService.createTokensForUser(user);
 		assertNotNull(tr);
-		assertNotNull(tr.getAt());
-		assertNotNull(tr.getIt());
-		assertNotNull(tr.getRt());
-		assertFalse(tr.getAt().equals(tr.getIt()));
-		assertFalse(tr.getAt().equals(tr.getRt()));
-		assertFalse(tr.getRt().equals(tr.getIt()));
-		jwtService.validateRefreshToken(tr.getRt());
+		assertNotNull(tr.getAccessToken());
+		assertNotNull(tr.getIdentityToken());
+		assertNotNull(tr.getRefreshToken());
+		assertFalse(tr.getAccessToken().equals(tr.getIdentityToken()));
+		assertFalse(tr.getAccessToken().equals(tr.getRefreshToken()));
+		assertFalse(tr.getRefreshToken().equals(tr.getIdentityToken()));
+		jwtService.validateRefreshToken(tr.getRefreshToken());
+		jwtService.validateAccessToken(tr.getAccessToken());
 	}
 	
 	

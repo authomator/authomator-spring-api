@@ -57,17 +57,17 @@ public class MailServiceTest {
 	@Test
 	public void test_createUrl_leaves_intact(){
 		URL url = ReflectionTestUtils.invokeMethod(mailService, "parseUrl", "https://stefan:weird@authomator.io:8443/t/./index.html?test=me#pageSection");
-		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createUrl", url, MailService.TokenType.reset, "testje");
+		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createResetUrl", url, "testje");
 		Assert.assertNotNull(createUrl);		
-		Assert.assertEquals(createUrl, "https://stefan:weird@authomator.io:8443/t/./index.html?test=me&reset=testje#pageSection");
+		Assert.assertEquals(createUrl, "https://stefan:weird@authomator.io:8443/t/./index.html?test=me&reset-token=testje#pageSection");
 	}
 	
 	@Test
 	public void test_createUrl_works_with_empty_path(){
 		URL url = ReflectionTestUtils.invokeMethod(mailService, "parseUrl", "https://authomator.io#test");
-		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createUrl", url, MailService.TokenType.reset, "tokendatadatatata");
+		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createResetUrl", url, "tokendatadatatata");
 		Assert.assertNotNull(createUrl);
-		Assert.assertEquals(createUrl, "https://authomator.io/?reset=tokendatadatatata#test");
+		Assert.assertEquals(createUrl, "https://authomator.io/?reset-token=tokendatadatatata#test");
 	}
 	
 	
@@ -80,8 +80,6 @@ public class MailServiceTest {
 		
 		mailService.sendForgotPasswordMail("test@local.local", "https://authomator.io/", "test");
 		
-		verify(mock, times(1)).sendForgotEmail("test@local.local", "https://authomator.io/?reset=test");
-	}
-	
-		
+		verify(mock, times(1)).sendForgotEmail("test@local.local", "https://authomator.io/?reset-token=test");
+	}		
 }

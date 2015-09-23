@@ -47,7 +47,7 @@ import io.authomator.api.mail.MailTransport;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = AuthomatorApiApplication.class)
 @WebAppConfiguration
-public class ForgotControllerTest {
+public class ResetPasswordControllerTest {
 
 	private static final String USER_EMAIL = "test@local.tld";
 	private static final String USER_PASSWORD = "somepassword";
@@ -116,7 +116,7 @@ public class ForgotControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/mail")
+				post("/forgot-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -138,7 +138,7 @@ public class ForgotControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/mail")
+				post("/forgot-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -168,7 +168,7 @@ public class ForgotControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/mail")
+				post("/forgot-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -193,7 +193,7 @@ public class ForgotControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/mail")
+				post("/forgot-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -226,12 +226,12 @@ public class ForgotControllerTest {
     	JsonWebSignature token = jwtService.getForgotPasswordToken(user);
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("ft", token.getCompactSerialization());
+    	req.put("resetToken", token.getCompactSerialization());
     	req.put("password", "newpassword");
     	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/reset")
+				post("/reset-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -239,11 +239,11 @@ public class ForgotControllerTest {
     		.andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.at").exists())
-            .andExpect(jsonPath("$.rt").exists())
-    		.andExpect(jsonPath("$.it").exists());
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+    		.andExpect(jsonPath("$.identityToken").exists());
     	
-    	User newPassUser = userService.login(USER_EMAIL, "newpassword");
+    	User newPassUser = userService.signIn(USER_EMAIL, "newpassword");
     	Assert.notNull(newPassUser);
 
     }
@@ -260,12 +260,12 @@ public class ForgotControllerTest {
     	userRepository.deleteAll();
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("ft", token.getCompactSerialization());
+    	req.put("resetToken", token.getCompactSerialization());
     	req.put("password", "newpassword");
     	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/reset")
+				post("/reset-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -293,12 +293,12 @@ public class ForgotControllerTest {
     	userRepository.deleteAll();
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("ft", token.getCompactSerialization() + "defect");
+    	req.put("resetToken", token.getCompactSerialization() + "defect");
     	req.put("password", "newpassword");
     	
     	mockMvc
     		.perform(
-				post("/api/auth/forgot/reset")
+				post("/reset-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -310,7 +310,7 @@ public class ForgotControllerTest {
 	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
 			.andExpect(jsonPath("$.fieldErrors").isArray())
 			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
-			.andExpect(jsonPath("$.fieldErrors[0].field").value("token"))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("resetToken"))
 	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid jwt token"))
 	        .andExpect(jsonPath("$.fieldErrors[0].code").value("InvalidToken"));
     }

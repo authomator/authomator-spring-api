@@ -15,10 +15,10 @@ import io.authomator.api.exception.UserNotFoundException;
 @Service
 public class UserService implements IUserService {
 	
-	@Value("${io.authomator.api.signup.allow:false}")
-	private boolean signupEnabled = false;
+	@Value("${io.authomator.api.registration.allow:false}")
+	private boolean registrationEnabled = false;
 	
-	@Value("${io.authomator.api.signup.default.roles:}")
+	@Value("${io.authomator.api.registration.default.roles:}")
 	private String[] defaultRoles;
 	
 	@Autowired
@@ -26,7 +26,7 @@ public class UserService implements IUserService {
 	
 	
 	/**
-	 * Signup a new user, returning the user entity
+	 * Register/Signup a new user, returning the user entity
 	 * 
 	 * @param email
 	 * @param password
@@ -34,9 +34,9 @@ public class UserService implements IUserService {
 	 * @throws RegistrationNotEnabledException 
 	 * @throws RuntimeException
 	 */
-	public User signUp(final String email, final String password) throws UserAlreadyExistsException, RegistrationNotEnabledException {
+	public User register(final String email, final String password) throws UserAlreadyExistsException, RegistrationNotEnabledException {
 		
-		if (!signupEnabled) {
+		if (!registrationEnabled) {
 			throw new RegistrationNotEnabledException();
 		}
 		
@@ -58,13 +58,13 @@ public class UserService implements IUserService {
 	
 	
 	/**
-	 * Login a user, returning the user entity
+	 * signIn/Login a user, returning the user entity
 	 * 
 	 * @param email
 	 * @param password
 	 * @return
 	 */
-	public User login(final String email, final String password) throws UserNotFoundException, InvalidCredentialsException {
+	public User signIn(final String email, final String password) throws UserNotFoundException, InvalidCredentialsException {
 		User user = userRepository.findByEmail(email);
 		if (user == null){
 			throw new UserNotFoundException(email);
@@ -105,7 +105,7 @@ public class UserService implements IUserService {
 	 * @return
 	 * @throws UserNotFoundException
 	 */
-	public User forgot(final String email)  throws UserNotFoundException{
+	public User forgotPassword(final String email)  throws UserNotFoundException{
 		User user = userRepository.findByEmail(email);
 		
 		if (user == null){
@@ -124,7 +124,7 @@ public class UserService implements IUserService {
 	 * @return User
 	 * @throws UserNotFoundException
 	 */
-	public User resetForgot(final String id, final String newPassword) throws UserNotFoundException{
+	public User resetPassword(final String id, final String newPassword) throws UserNotFoundException{
 		
 		User user = userRepository.findOne(id);
 		
@@ -139,7 +139,7 @@ public class UserService implements IUserService {
 	
 	//TODO: implement testing
 	/**
-	 * Change password for a user by checking his current password before changing it
+	 * Update password for a user by checking his current password before changing it
 	 * 
 	 * @param id
 	 * @param currentPassword
@@ -148,7 +148,7 @@ public class UserService implements IUserService {
 	 * @throws UserNotFoundException
 	 * @throws InvalidCredentialsException
 	 */
-	public User changePassword(final String id, final String currentPassword, final String newPassword) throws UserNotFoundException, InvalidCredentialsException{
+	public User updatePassword(final String id, final String currentPassword, final String newPassword) throws UserNotFoundException, InvalidCredentialsException{
 		
 		User user = userRepository.findOne(id);
 		

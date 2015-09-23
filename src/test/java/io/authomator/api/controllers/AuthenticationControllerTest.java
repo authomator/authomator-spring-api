@@ -54,7 +54,7 @@ public class AuthenticationControllerTest {
 	@Autowired
 	private UserService userService;
 	
-	@Value("${io.authomator.api.signup.allow:false}")
+	@Value("${io.authomator.api.registration.allow:false}")
 	private boolean registrationStatus;
 	
 	
@@ -75,13 +75,13 @@ public class AuthenticationControllerTest {
         		.build();
         userRepository.save(user);
                 
-        ReflectionTestUtils.setField(userService, "signupEnabled", true);
+        ReflectionTestUtils.setField(userService, "registrationEnabled", true);
     }
     
     @After
 	public void cleanup(){
     	userRepository.deleteAll();
-		ReflectionTestUtils.setField(userService, "signupEnabled", registrationStatus);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", registrationStatus);
     }
     
     /*
@@ -101,7 +101,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/login")
+				post("/sign-in")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -109,9 +109,9 @@ public class AuthenticationControllerTest {
     		.andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.at").exists())
-            .andExpect(jsonPath("$.rt").exists())
-    		.andExpect(jsonPath("$.it").exists());
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+    		.andExpect(jsonPath("$.identityToken").exists());
     }
     
     
@@ -139,7 +139,7 @@ public class AuthenticationControllerTest {
     	expectGenericCredentialsError(	
 	    	mockMvc
 	    		.perform(
-					post("/api/auth/login")
+					post("/sign-in")
 					.accept(APPLICATION_JSON)
 					.contentType(APPLICATION_JSON)
 					.content(req)
@@ -161,7 +161,7 @@ public class AuthenticationControllerTest {
     	expectGenericCredentialsError(    	
 	    	mockMvc
 	    		.perform(
-					post("/api/auth/login")
+					post("/sign-in")
 					.accept(APPLICATION_JSON)
 					.contentType(APPLICATION_JSON)
 					.content(req)
@@ -181,7 +181,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/login")
+				post("/sign-in")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -209,7 +209,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/login")
+				post("/sign-in")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -243,7 +243,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/signup")
+				post("/register")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -251,9 +251,9 @@ public class AuthenticationControllerTest {
     		.andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.at").exists())
-            .andExpect(jsonPath("$.rt").exists())
-    		.andExpect(jsonPath("$.it").exists());
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+            .andExpect(jsonPath("$.identityToken").exists());
     }
     
     @Test
@@ -267,7 +267,7 @@ public class AuthenticationControllerTest {
     	expectGenericCredentialsError(
 	    	mockMvc
 	    		.perform(
-					post("/api/auth/signup")
+					post("/register")
 					.accept(APPLICATION_JSON)
 					.contentType(APPLICATION_JSON)
 					.content(req)
@@ -286,7 +286,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/signup")
+				post("/register")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -307,7 +307,7 @@ public class AuthenticationControllerTest {
     @Test
     public void signup_when_signup_is_disabled() throws Exception {
     	
-    	ReflectionTestUtils.setField(userService, "signupEnabled", false);
+    	ReflectionTestUtils.setField(userService, "registrationEnabled", false);
     	
     	String req = new LoginRequestBuilder()
     			.withEmail(SIGNUP_USER_EMAIL)
@@ -316,7 +316,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/signup")
+				post("/register")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -324,8 +324,8 @@ public class AuthenticationControllerTest {
     		.andDo(print())
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.message").value("Signup is not allowed"))
-            .andExpect(jsonPath("$.code").value("SignupDisabled"));
+            .andExpect(jsonPath("$.message").value("Registration is not allowed"))
+            .andExpect(jsonPath("$.code").value("RegistrationDisabled"));
     	
     }
     

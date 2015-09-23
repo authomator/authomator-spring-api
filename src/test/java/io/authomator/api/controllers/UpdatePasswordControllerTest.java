@@ -2,7 +2,7 @@ package io.authomator.api.controllers;
 
 import static io.authomator.api.TestUtil.APPLICATION_JSON;
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,7 +38,7 @@ import io.authomator.api.jwt.JwtService;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = AuthomatorApiApplication.class)
 @WebAppConfiguration
-public class ChangePasswordControllerTest {
+public class UpdatePasswordControllerTest {
 	
 	
 	private static final String USER_EMAIL = "testchange@local.tld";
@@ -93,13 +93,13 @@ public class ChangePasswordControllerTest {
     	JsonWebSignature token = jwtService.getAccessToken(user);
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("at", token.getCompactSerialization());
-    	req.put("password", USER_PASSWORD);
+    	req.put("accessToken", token.getCompactSerialization());
+    	req.put("oldPassword", USER_PASSWORD);
     	req.put("newPassword", newPassword);
     	
     	mockMvc
     		.perform(
-				post("/api/auth/change")
+				put("/password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -107,11 +107,11 @@ public class ChangePasswordControllerTest {
     		.andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.at").exists())
-            .andExpect(jsonPath("$.rt").exists())
-    		.andExpect(jsonPath("$.it").exists());
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+    		.andExpect(jsonPath("$.identityToken").exists());
     	
-    	User newPassUser = userService.login(USER_EMAIL, newPassword);
+    	User newPassUser = userService.signIn(USER_EMAIL, newPassword);
     	Assert.notNull(newPassUser);
     }
     
@@ -126,13 +126,13 @@ public class ChangePasswordControllerTest {
     	JsonWebSignature token = jwtService.getAccessToken(user);
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("at", token.getCompactSerialization());
-    	req.put("password", "incorrectcurrent");
+    	req.put("accessToken", token.getCompactSerialization());
+    	req.put("oldPassword", "incorrectcurrent");
     	req.put("newPassword", newPassword);
     	
     	mockMvc
     		.perform(
-				post("/api/auth/change")
+				put("/password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -150,7 +150,7 @@ public class ChangePasswordControllerTest {
 	        .andExpect(jsonPath("$.fieldErrors[0].code").value("CredentialsError"));
     	
     	// password is unchanged
-    	User newPassUser = userService.login(USER_EMAIL, USER_PASSWORD);
+    	User newPassUser = userService.signIn(USER_EMAIL, USER_PASSWORD);
     	Assert.notNull(newPassUser);
     }
 	
@@ -165,15 +165,15 @@ public class ChangePasswordControllerTest {
     	JsonWebSignature token = jwtService.getAccessToken(user);
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("at", token.getCompactSerialization());
-    	req.put("password", USER_PASSWORD);
+    	req.put("accessToken", token.getCompactSerialization());
+    	req.put("oldPassword", USER_PASSWORD);
     	req.put("newPassword", newPassword);
     	
     	userRepository.deleteAll();
     	
     	mockMvc
     		.perform(
-				post("/api/auth/change")
+				put("/password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -197,13 +197,13 @@ public class ChangePasswordControllerTest {
     public void testChangePasswordShouldNotChangePasswordWithIncorrectAccessToken() throws Throwable {
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("at", "someinvalidjwttoken");
-    	req.put("password", USER_PASSWORD);
+    	req.put("accessToken", "someinvalidjwttoken");
+    	req.put("oldPassword", USER_PASSWORD);
     	req.put("newPassword", "newPass");
     	
     	mockMvc
     		.perform(
-				post("/api/auth/change")
+				put("/password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -216,7 +216,7 @@ public class ChangePasswordControllerTest {
 	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
 			.andExpect(jsonPath("$.fieldErrors").isArray())
 			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
-			.andExpect(jsonPath("$.fieldErrors[0].field").value("token"))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("accessToken"))
 	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid jwt token"))
 	        .andExpect(jsonPath("$.fieldErrors[0].code").value("InvalidToken"));
     	
