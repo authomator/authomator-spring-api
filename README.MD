@@ -419,3 +419,13 @@ The submitted data is not valid.
 ###### Body
 
 See common errors.
+
+## Change log
+
+### v1.0.0
+
+- Initial production version
+
+## License
+
+MIT
