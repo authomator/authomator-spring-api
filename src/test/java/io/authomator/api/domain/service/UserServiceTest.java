@@ -34,16 +34,16 @@ public class UserServiceTest {
 	@Autowired
 	private UserService userService;
 	
-	@Value("${io.authomator.api.signup.allow:false}")
+	@Value("${io.authomator.api.registration.allow:false}")
 	private boolean registrationStatus;
 	
-	@Value("${io.authomator.api.signup.default.roles:}")
+	@Value("${io.authomator.api.registration.default.roles:}")
 	private String[] defaultRoles;
 	
 	
 	@After
 	public void cleanup(){
-		ReflectionTestUtils.setField(userService, "signupEnabled", registrationStatus);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", registrationStatus);
 		ReflectionTestUtils.setField(userService, "defaultRoles", defaultRoles);
 		userRepository.deleteAll();
 	}
@@ -55,14 +55,14 @@ public class UserServiceTest {
 	@Test
 	public void userRegistrationConfig(){
 		assertFalse ("The registration status should reflect the io.authomator.api.signup.allow property",
-			(boolean) ReflectionTestUtils.getField(userService, "signupEnabled")
+			(boolean) ReflectionTestUtils.getField(userService, "registrationEnabled")
 		);
 	}
 	
 	@Test
 	public void userRegistrationDefaultDisabled(){
 		assertFalse ("The registration should be disabled by default",
-			(boolean) ReflectionTestUtils.getField(userService, "signupEnabled")
+			(boolean) ReflectionTestUtils.getField(userService, "registrationEnabled")
 		);
 	}
 	
@@ -72,7 +72,7 @@ public class UserServiceTest {
 	
 	@Test
 	public void signUpShouldSignupUsers() throws UserAlreadyExistsException, RegistrationNotEnabledException{
-		ReflectionTestUtils.setField(userService, "signupEnabled", true);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
 		User user = userService.register("sometest@domain.tld", "test");
 		assertNotNull(user);
 	}
@@ -80,7 +80,7 @@ public class UserServiceTest {
 
 	@Test
 	public void signUpShouldSignupUsersAndAddDefaultGroups() throws UserAlreadyExistsException, RegistrationNotEnabledException{
-		ReflectionTestUtils.setField(userService, "signupEnabled", true);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
 		ReflectionTestUtils.setField(userService, "defaultRoles", new String[]{"ADMIN", "TESTER"});		
 		User user = userService.register("sometest@domain.tld", "test");
 		assertFalse(user.getRoles().isEmpty());
@@ -91,13 +91,13 @@ public class UserServiceTest {
 	
 	@Test(expected=RegistrationNotEnabledException.class)
 	public void signUpShouldNotSignupUsersIfSignupIsDisabled() throws UserAlreadyExistsException, RegistrationNotEnabledException{
-		ReflectionTestUtils.setField(userService, "signupEnabled", false);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", false);
 		userService.register("sometest@domain.tld", "test");
 	}
 	
 	@Test(expected=UserAlreadyExistsException.class)
 	public void signUpShouldNotCreateDuplicateUsers() throws UserAlreadyExistsException, RegistrationNotEnabledException{
-		ReflectionTestUtils.setField(userService, "signupEnabled", true);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
 		
 		User user = new User();
 		user.setEmail("sometest@domain.tld");
@@ -113,7 +113,7 @@ public class UserServiceTest {
 
 	@Test
 	public void loginShouldloginCorrectCredentials() throws UserNotFoundException, InvalidCredentialsException, UserAlreadyExistsException, RegistrationNotEnabledException{
-		ReflectionTestUtils.setField(userService, "signupEnabled", true);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
 		assertNotNull(
 			userService.register("sometest@domain.tld", "yeahright")
 		);
@@ -130,7 +130,7 @@ public class UserServiceTest {
 
 	@Test(expected=InvalidCredentialsException.class)
 	public void loginThrowsInvalidCredentialsException() throws UserNotFoundException, InvalidCredentialsException, UserAlreadyExistsException, RegistrationNotEnabledException{
-		ReflectionTestUtils.setField(userService, "signupEnabled", true);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
 		assertNotNull(
 				userService.register("sometest@domain.tld", "mypassword")
 			);
@@ -142,7 +142,7 @@ public class UserServiceTest {
 	//--------------------------------------------------------------------------
 	@Test
 	public void refreshReturnsAUser() throws UserAlreadyExistsException, RegistrationNotEnabledException, UserNotFoundException{
-		ReflectionTestUtils.setField(userService, "signupEnabled", true);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
 		User user = userService.register("sometest@domain.tld", "yeahright");
 		assertNotNull(user);
 		User refreshedUser = userService.refresh(user.getId());

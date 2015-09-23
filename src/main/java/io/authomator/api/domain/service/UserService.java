@@ -15,10 +15,10 @@ import io.authomator.api.exception.UserNotFoundException;
 @Service
 public class UserService implements IUserService {
 	
-	@Value("${io.authomator.api.signup.allow:false}")
-	private boolean signupEnabled = false;
+	@Value("${io.authomator.api.registration.allow:false}")
+	private boolean registrationEnabled = false;
 	
-	@Value("${io.authomator.api.signup.default.roles:}")
+	@Value("${io.authomator.api.registration.default.roles:}")
 	private String[] defaultRoles;
 	
 	@Autowired
@@ -36,7 +36,7 @@ public class UserService implements IUserService {
 	 */
 	public User register(final String email, final String password) throws UserAlreadyExistsException, RegistrationNotEnabledException {
 		
-		if (!signupEnabled) {
+		if (!registrationEnabled) {
 			throw new RegistrationNotEnabledException();
 		}
 		

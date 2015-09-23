@@ -54,7 +54,7 @@ public class AuthenticationControllerTest {
 	@Autowired
 	private UserService userService;
 	
-	@Value("${io.authomator.api.signup.allow:false}")
+	@Value("${io.authomator.api.registration.allow:false}")
 	private boolean registrationStatus;
 	
 	
@@ -75,13 +75,13 @@ public class AuthenticationControllerTest {
         		.build();
         userRepository.save(user);
                 
-        ReflectionTestUtils.setField(userService, "signupEnabled", true);
+        ReflectionTestUtils.setField(userService, "registrationEnabled", true);
     }
     
     @After
 	public void cleanup(){
     	userRepository.deleteAll();
-		ReflectionTestUtils.setField(userService, "signupEnabled", registrationStatus);
+		ReflectionTestUtils.setField(userService, "registrationEnabled", registrationStatus);
     }
     
     /*
@@ -307,7 +307,7 @@ public class AuthenticationControllerTest {
     @Test
     public void signup_when_signup_is_disabled() throws Exception {
     	
-    	ReflectionTestUtils.setField(userService, "signupEnabled", false);
+    	ReflectionTestUtils.setField(userService, "registrationEnabled", false);
     	
     	String req = new LoginRequestBuilder()
     			.withEmail(SIGNUP_USER_EMAIL)
