@@ -26,10 +26,9 @@ import io.authomator.api.exception.UserNotFoundException;
 import io.authomator.api.jwt.JwtService;
 
 @RestController
-@RequestMapping("/api/auth")
-public class RefreshController {
+public class RefreshTokensController {
 
-	private static final Logger logger = Logger.getLogger(RefreshController.class);
+	private static final Logger logger = Logger.getLogger(RefreshTokensController.class);
 	
 	@Autowired
 	UserService userService;
@@ -37,11 +36,11 @@ public class RefreshController {
 	@Autowired
 	JwtService jwtService;
 
-	@RequestMapping(path="/refresh", method=RequestMethod.POST)
+	@RequestMapping(path="/refresh-tokens", method=RequestMethod.POST)
 	public TokenReply refresh(@Valid @RequestBody RefreshTokensRequest req) throws InvalidJwtException, MalformedClaimException, 
 																		UserNotFoundException, JoseException {
 		
-		JwtClaims refreshClaims = jwtService.validateRefreshToken(req.getRt());
+		JwtClaims refreshClaims = jwtService.validateRefreshToken(req.getRefreshToken());
 		User user = userService.refresh(refreshClaims.getSubject());
 		return jwtService.createTokensForUser(user);
 	}
@@ -53,7 +52,7 @@ public class RefreshController {
 
 	private ValidationError createInvalidRefreshTokenValidationError(){
 		ValidationError validationError = new ValidationError();
-		validationError.addFieldError("rt", "Invalid jwt token", "InvalidToken");
+		validationError.addFieldError("refreshToken", "Invalid jwt token", "InvalidToken");
 		return validationError;
 	}
 			

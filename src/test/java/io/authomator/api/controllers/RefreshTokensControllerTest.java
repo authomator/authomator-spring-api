@@ -36,7 +36,7 @@ import io.authomator.api.jwt.JwtService;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = AuthomatorApiApplication.class)
 @WebAppConfiguration
-public class RefreshControllerTest {
+public class RefreshTokensControllerTest {
 	
 	private static final String USER_EMAIL = "test@local.tld";
 	private static final String USER_PASSWORD = "test@local.tld";
@@ -85,11 +85,11 @@ public class RefreshControllerTest {
     	TokenReply tokens = jwtService.createTokensForUser(user);
     	
     	HashMap<String, String> req = new HashMap<>();
-    	req.put("rt", tokens.getRefreshToken());
+    	req.put("refreshToken", tokens.getRefreshToken());
     	
     	mockMvc
     		.perform(
-				post("/api/auth/refresh")
+				post("/refresh-tokens")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -111,7 +111,7 @@ public class RefreshControllerTest {
 			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
 			.andExpect(jsonPath("$.fieldErrors[0].code").value("InvalidToken"))
 			.andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid jwt token"))
-			.andExpect(jsonPath("$.fieldErrors[0].field").value("rt"));
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("refreshToken"));
 	    }
     
     
@@ -122,12 +122,12 @@ public class RefreshControllerTest {
     	userRepository.delete(user);
     	
     	HashMap<String, String> req = new HashMap<>();
-    	req.put("rt", tokens.getRefreshToken());
+    	req.put("refreshToken", tokens.getRefreshToken());
     	
     	expectGenericValidationError(
 			mockMvc
         		.perform(
-    				post("/api/auth/refresh")
+    				post("/refresh-tokens")
     				.accept(APPLICATION_JSON)
     				.contentType(APPLICATION_JSON)
     				.content(new ObjectMapper().writeValueAsString(req))
@@ -140,12 +140,12 @@ public class RefreshControllerTest {
     public void refresh_with_invalid_jwt_token() throws Exception {
     	    	
     	HashMap<String, String> req = new HashMap<>();
-    	req.put("rt","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ");
+    	req.put("refreshToken","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ");
     	
     	expectGenericValidationError(
 	    	mockMvc
 	    		.perform(
-					post("/api/auth/refresh")
+					post("/refresh-tokens")
 					.accept(APPLICATION_JSON)
 					.contentType(APPLICATION_JSON)
 					.content(new ObjectMapper().writeValueAsString(req))
@@ -158,12 +158,12 @@ public class RefreshControllerTest {
     public void refresh_with_invalid_token() throws Exception {
     	
     	HashMap<String, String> req = new HashMap<>();
-    	req.put("rt","ll.aa.bb");
+    	req.put("refreshToken","ll.aa.bb");
     	
     	expectGenericValidationError(
 			mockMvc
 				.perform(
-					post("/api/auth/refresh")
+					post("/refresh-tokens")
 					.accept(APPLICATION_JSON)
 					.accept(APPLICATION_JSON)
 					.contentType(APPLICATION_JSON)
