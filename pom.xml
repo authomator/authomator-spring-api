@@ -5,8 +5,7 @@
 
 	<groupId>io.authomator</groupId>
 	<artifactId>authomator-spring-api</artifactId>
-	<version>1.0.0.RELEASE</version>
-	<packaging>jar</packaging>
+	<version>1.0.1.SNAPSHOT</version>
 
 	<name>authomator-spring-api</name>
 	<description>Authomator API</description>
