@@ -27,7 +27,6 @@ import io.authomator.api.exception.UserNotFoundException;
 import io.authomator.api.jwt.JwtService;
 
 @RestController
-@RequestMapping("/api/auth")
 public class AuthenticationController {
 
 	@Autowired
