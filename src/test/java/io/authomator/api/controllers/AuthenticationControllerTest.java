@@ -109,9 +109,9 @@ public class AuthenticationControllerTest {
     		.andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.at").exists())
-            .andExpect(jsonPath("$.rt").exists())
-    		.andExpect(jsonPath("$.it").exists());
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+    		.andExpect(jsonPath("$.identityToken").exists());
     }
     
     
@@ -251,9 +251,9 @@ public class AuthenticationControllerTest {
     		.andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.at").exists())
-            .andExpect(jsonPath("$.rt").exists())
-    		.andExpect(jsonPath("$.it").exists());
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+            .andExpect(jsonPath("$.identityToken").exists());
     }
     
     @Test

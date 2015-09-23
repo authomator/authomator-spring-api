@@ -85,7 +85,7 @@ public class RefreshControllerTest {
     	TokenReply tokens = jwtService.createTokensForUser(user);
     	
     	HashMap<String, String> req = new HashMap<>();
-    	req.put("rt",tokens.getRt());
+    	req.put("rt", tokens.getRefreshToken());
     	
     	mockMvc
     		.perform(
@@ -97,9 +97,9 @@ public class RefreshControllerTest {
     		.andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.at").exists())
-            .andExpect(jsonPath("$.rt").exists())
-    		.andExpect(jsonPath("$.it").exists());
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+    		.andExpect(jsonPath("$.identityToken").exists());
     }
     
     private void expectGenericValidationError(ResultActions act) throws Exception{
@@ -122,7 +122,7 @@ public class RefreshControllerTest {
     	userRepository.delete(user);
     	
     	HashMap<String, String> req = new HashMap<>();
-    	req.put("rt",tokens.getRt());
+    	req.put("rt", tokens.getRefreshToken());
     	
     	expectGenericValidationError(
 			mockMvc

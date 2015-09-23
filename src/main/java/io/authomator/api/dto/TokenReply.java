@@ -5,35 +5,40 @@ public class TokenReply {
 	/**
 	 * Access token
 	 */
-	private String at;
+	private String accessToken;
 	
 	/**
 	 * Identity token
 	 */
-	private String it;
+	private String identityToken;
 	
 	/**
 	 * Refresh token
 	 */
-	private String rt;
+	private String refreshToken;
+
 	
-	
-	public String getAt() {
-		return at;
+	public String getAccessToken() {
+		return accessToken;
 	}
-	public void setAt(String at) {
-		this.at = at;
+
+	public void setAccessToken(String accessToken) {
+		this.accessToken = accessToken;
 	}
-	public String getIt() {
-		return it;
+
+	public String getIdentityToken() {
+		return identityToken;
 	}
-	public void setIt(String it) {
-		this.it = it;
+
+	public void setIdentityToken(String identityToken) {
+		this.identityToken = identityToken;
 	}
-	public String getRt() {
-		return rt;
+
+	public String getRefreshToken() {
+		return refreshToken;
 	}
-	public void setRt(String rt) {
-		this.rt = rt;
+
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
 	}
 }

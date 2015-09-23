@@ -253,9 +253,9 @@ public class JwtService {
 	 */
 	public TokenReply createTokensForUser(User user) throws JoseException{		
 		TokenReply reply = new TokenReply();		
-		reply.setAt(getAccessToken(user).getCompactSerialization());
-		reply.setIt(getIdentityToken(user).getCompactSerialization());
-		reply.setRt(getRefreshToken(user).getCompactSerialization());
+		reply.setAccessToken(getAccessToken(user).getCompactSerialization());
+		reply.setIdentityToken(getIdentityToken(user).getCompactSerialization());
+		reply.setRefreshToken(getRefreshToken(user).getCompactSerialization());
 		return reply;
 	}
 	

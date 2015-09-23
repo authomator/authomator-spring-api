@@ -239,9 +239,9 @@ public class ForgotControllerTest {
     		.andDo(print())
             .andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.at").exists())
-            .andExpect(jsonPath("$.rt").exists())
-    		.andExpect(jsonPath("$.it").exists());
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+    		.andExpect(jsonPath("$.identityToken").exists());
     	
     	User newPassUser = userService.login(USER_EMAIL, "newpassword");
     	Assert.notNull(newPassUser);
