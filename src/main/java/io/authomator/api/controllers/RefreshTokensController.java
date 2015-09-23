@@ -36,7 +36,7 @@ public class RefreshTokensController {
 	@Autowired
 	JwtService jwtService;
 
-	@RequestMapping(path="/refresh-tokens", method=RequestMethod.POST)
+	@RequestMapping(value="/refresh-tokens", method=RequestMethod.POST)
 	public TokenReply refresh(@Valid @RequestBody RefreshTokensRequest req) throws InvalidJwtException, MalformedClaimException, 
 																		UserNotFoundException, JoseException {
 		

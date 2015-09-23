@@ -243,7 +243,7 @@ public class JwtServiceTest {
 		JsonWebSignature jws = new JsonWebSignature();
 		jws.setPayload(claims.toJson());
 		jws.setKey(new HmacKey(secret.getBytes()));
-		jws.setAlgorithmHeaderValue((String)ReflectionTestUtils.getField(jwtService, JwtService.class, "alg"));
+		jws.setAlgorithmHeaderValue((String)ReflectionTestUtils.getField(jwtService, "alg"));
 		jws.setKeyIdHeaderValue("0");
 		return jws;
 	}

@@ -42,13 +42,13 @@ public class AuthenticationController {
 	 * ------------------------------------------------------------------------------------------
 	 */
 	
-	@RequestMapping(path="/sign-in", method=RequestMethod.POST)
+	@RequestMapping(value="/sign-in", method=RequestMethod.POST)
 	public TokenReply login(@Valid @RequestBody LoginRequest loginRequest) throws JoseException, UserNotFoundException, InvalidCredentialsException {		
 		User user = userService.signIn(loginRequest.getEmail(), loginRequest.getPassword());
 		return jwtService.createTokensForUser(user);
 	}
 	
-	@RequestMapping(path="/register", method=RequestMethod.POST)
+	@RequestMapping(value="/register", method=RequestMethod.POST)
 	public TokenReply signup(@Valid @RequestBody LoginRequest loginRequest) throws JoseException, UserAlreadyExistsException, RegistrationNotEnabledException {		
 		User user = userService.register(loginRequest.getEmail(), loginRequest.getPassword());
 		return jwtService.createTokensForUser(user);

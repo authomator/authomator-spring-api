@@ -42,7 +42,7 @@ public class UpdatePasswordController {
 	 * ------------------------------------------------------------------------------------------
 	 */
 	
-	@RequestMapping(path="/password", method=RequestMethod.PUT)
+	@RequestMapping(value="/password", method=RequestMethod.PUT)
 	public TokenReply changePassword(@Valid @RequestBody UpdatePasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
 																							UserNotFoundException, InvalidCredentialsException, 
 																							JoseException {

@@ -1,6 +1,12 @@
 package io.authomator.api.controllers;
 
 import static io.authomator.api.TestUtil.APPLICATION_JSON;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.startsWith;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -11,10 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jose4j.jws.JsonWebSignature;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.*;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +41,6 @@ import io.authomator.api.builders.UserBuilder;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.repository.UserRepository;
 import io.authomator.api.domain.service.UserService;
-import io.authomator.api.dto.TokenReply;
 import io.authomator.api.jwt.JwtService;
 import io.authomator.api.mail.MailService;
 import io.authomator.api.mail.MailTransport;

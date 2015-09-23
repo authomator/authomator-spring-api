@@ -53,8 +53,8 @@ public class ResetPasswordController {
 	 * ------------------------------------------------------------------------------------------
 	 */
 	
-	@RequestMapping(path="/forgot-password", method=RequestMethod.POST)
-	@ResponseStatus(code=HttpStatus.NO_CONTENT)
+	@RequestMapping(value="/forgot-password", method=RequestMethod.POST)
+	@ResponseStatus(value=HttpStatus.NO_CONTENT)
 	public void sendMailResetToken(
 			@Valid @RequestBody final ForgotPasswordRequest req) throws UserNotFoundException, MalformedURLException, 
 																		NonSecureUrlException, UnauthorizedDomainException, 
@@ -66,7 +66,7 @@ public class ResetPasswordController {
 	}
 	
 
-	@RequestMapping(path="/reset-password", method=RequestMethod.POST)
+	@RequestMapping(value="/reset-password", method=RequestMethod.POST)
 	public TokenReply forgotPassword(			
 			@Valid @RequestBody() final ResetPasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
 																			UserNotFoundException, JoseException {
