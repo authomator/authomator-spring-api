@@ -22,12 +22,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 		http.exceptionHandling();
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 		http.authorizeRequests()
-			.antMatchers(HttpMethod.POST, "/api/auth/sign-in").permitAll()
-			.antMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
-			.antMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
-			.antMatchers(HttpMethod.POST, "/api/auth/forgot/mail").permitAll()
-			.antMatchers(HttpMethod.POST, "/api/auth/forgot/reset").permitAll()
-			.antMatchers(HttpMethod.POST, "/api/auth/update-password").permitAll()
+			.antMatchers(HttpMethod.POST, "/sign-in").permitAll()
+			.antMatchers(HttpMethod.POST, "/register").permitAll()
+			.antMatchers(HttpMethod.POST, "/refresh-tokens").permitAll()
+			.antMatchers(HttpMethod.POST, "/forgot-password").permitAll()
+			.antMatchers(HttpMethod.POST, "/reset-password").permitAll()
+			.antMatchers(HttpMethod.PUT, "/password").permitAll()
 			.anyRequest().denyAll();
 	}
 	
