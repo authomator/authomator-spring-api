@@ -1,80 +1,64 @@
-Authomator-api
-==============
+# Authomator Spring API
 
-This is a spring based authentication server. The goal is to take care of
-authentication/registration/password resets using a REST API.
+Authomator API server in Java Spring to:
 
-When a user is registered or logged in, 3 tokens are returned which allows the
-application to verify the identity:
+- register new users
+- sign in existing users
+- recover passwords using email
+- update existing passwords
 
--   An identity token that describes the identity of the user
+using JSON Web Tokens (JWT):
 
--   An access token, which is reduced in size to only include the `sub` field
-    (jwt subject) that uniquely identifies the user
+- supports token refreshing
+- keeps access token as small as possible for optimal performance
 
--   A refresh token which can be used to request a new set of tokens without
-    requiring the user to re-authenticate.
+## Dependencies
 
-Dependencies
-------------
+- MongoDB
+- Java 8 JDK
 
--   mongodb
+## Installation
 
--   java 8 JDK
+Fork this repository, then clone your fork, and run:
 
- 
-
-Building a standalone jar
--------------------------
-
-Fork this repository, then clone your fork, and run this in your newly created
-directory:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-mvn package
+```bash
+$ mvn package
 
 # This wil skip running the tests:
+$ mvn -Dmaven.test.skip=true package
+```
 
-mvn -Dmaven.test.skip=true package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Starting the server
 
- 
-
-Launch the server
------------------
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```bash
 # If you build the jar:
-
-java -jar target/authomator-api-0.0.1-SNAPSHOT.jar
+$ java -jar target/authomator-api-0.0.1-SNAPSHOT.jar
 
 # Without building the jar:
+$ mvn spring-boot:run
+```
 
-mvn spring-boot:run
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Your authomator API is now up and running!
 
-Your authomator API is now up and running! However, it will use defaults that
-will probably not be useful.. so read on how to configure it to do some
-authomation for you...
+## Configuring the server
 
- 
+Edit `src/main/resources/application.properties` and make necessary adjustments.
 
-Configuration
--------------
-
-Edit src/main/resources/application.properties and make necessary adjustments.
 Or better declare you config using environment variables.
 
- 
+## JWT Tokens
 
-JWT Tokens contents
-===================
+When a user successfully signs in or registers, 3 tokens are returned:
 
- 
+- **accessToken**: can be used to perform application requests on behalf of the user
+- **identityToken**: contains details about the user
+- **refreshToken**: can be used to request a new set of tokens
 
-### IdentityToken contents:
+### identityToken
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Contains all information that Authomator knows about the user.
+
+```javascript
 {
     "iss":"issuer",
     "aud":["audience","audience2"],
@@ -85,13 +69,13 @@ JWT Tokens contents
     "roles":["USER","ADMIN"],
     "email":"testuser@mydomain.tld"
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+### AccessToken
 
-### AccessToken contents:
+Contains only `sub` and `roles`. Due to its small size, it is recommended to use this token to authenticate requests with your backend.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```javascript
 {
     "iss":"issuer",
     "aud":["audience","audience2"],
@@ -101,13 +85,11 @@ JWT Tokens contents
     "sub":"5575e89dd9ebb6c28fa5b358",
     "roles":["USER","ADMIN"]
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+### RefreshToken
 
-### RefreshToken contents:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```javascript
 {
     "iss":"issuer",
     "aud":"issuer#refresh",
@@ -116,47 +98,22 @@ JWT Tokens contents
     "nbf":1441713762,
     "sub":"5575e89dd9ebb6c28fa5b358"
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+## Common errors
 
-To consume less bandwith it is advisable to use the accessToken for
-authenticating requests to a backend. This token only contains the `sub` and
-`roles` in order to lower the size of each request.
+### 403 Forbidden
 
-However the identityToken is usefull as it contains all info about the user, so
-that a profile can be build in some backend or used in the frontend. In essence
-it is not the goal of authomator to store a full user profile with data such as
-address, phone number. This should be up to the application, but data we already
-collect will be in the Identity token so that a user does not have to enter it
-twice..
-
- 
-
-Using the service
-=================
-
- 
-
-Common errors
--------------
-
- 
-
-### Response Data (403 Forbidden)
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```javascript
 {
     "message":"Signup is not allowed",
     "code": "SignupDisabled"
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+### 422 Unprocessable Entity
 
-### Response Data (422 Unprocessable Entity)
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```javascript
 {
     "message": "Validation failed",
     "code": "ValidationFailed",
@@ -173,293 +130,292 @@ Common errors
         }
     ]
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+## API
 
- 
+### POST /register
 
-Signing up users (POST /api/auth/signup)
-----------------------------------------
+Register a new user.
 
- 
+#### Request
 
-**Make sure you set **`io.authomator.api.signup.allow`** to **`true`** to enable
-user signups.**  
-By default users that are signed up to the service will not be granted any role.
-This can be configured with
+##### Content-type
 
-`io.authomator.api.signup.default.roles`. in
-`src/main/resources/application.properties`
+`application/json`
 
- 
+##### Parameters
 
-For example to allow registration and assign every new user the role `“USER"`
+- `email`: string, required, user email address
+- `password`: string, required, user password
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#### Response
+
+##### 200 OK
+
+User has been successfully registered.
+
+###### Body
+
+The body already conveniently contains the tokens so you don't have to sign in after registration.
+
+```javascript
+{
+    "identityToken":"...",
+    "accessToken":"...",
+    "refreshToken":"..."
+}
+```
+
+##### 403 Forbidden
+
+Registration is not allowed.
+
+###### Body
+
+See common errors.
+
+##### 422 Unprocessable Entity
+
+The submitted data is not valid.
+
+###### Body
+
+See common errors.
+
+#### Server configuration
+
+- `io.authomator.api.register.allow`: set to `false` to disable new registrations
+- `io.authomator.api.register.default.roles`: specify roles you want to assign to new users.
+
+For example, to allow registration and assign every new user the role `“USER"`:
+
+```bash
 io.authomator.api.signup.allow=true
 io.authomator.api.signup.default.roles=USER
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
+```
 
 To assign multiple roles:
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```bash
 io.authomator.api.signup.default.roles=USER,REVIEWER
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+Or use environment variables:
 
-Or instead of changing the config file use environment vars
+```bash
+$ export IO_AUTHOMATOR_API_SIGNUP_ALLOW=true
+$ export IO_AUTHOMATOR_API_SIGNUP_DEFAULT_ROLES=USER,REVIEWER
+```
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-export IO_AUTHOMATOR_API_SIGNUP_ALLOW=true
-export IO_AUTHOMATOR_API_SIGNUP_DEFAULT_ROLES=USER,REVIEWER
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- 
+### POST /sign-in
 
-### Parameters (json body)
+Sign in an existing user.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#### Request
+
+##### Content-type
+
+`application/json`
+
+##### Parameters
+
+- `email`: string, required, user email address
+- `password`: string, required, user password
+
+#### Response
+
+##### 200 OK
+
+User has been successfully signed in.
+
+###### Body
+
+```javascript
 {
-    "email":      The email of the user to register
-    "password":   The password for the new user
+    "identityToken":"...",
+    "accessToken":"...",
+    "refreshToken":"..."
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+##### 422 Unprocessable Entity
 
-### Response Codes
+The submitted data is not valid.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-200 Ok                       User signup successful
-403 Forbidden                Signup is not allowed (config see above)
-422 Unprocessable Entity     Wrong parameters or user exists
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+###### Body
 
- 
+See common errors.
 
-### Response Data (200 OK)
+### POST /refresh-tokens
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get a new set of tokens.
+
+#### Request
+
+##### Content-type
+
+`application/json`
+
+##### Parameters
+
+- `refreshToken`: string, required, refresh token
+
+#### Response
+
+##### 200 OK
+
+###### Body
+
+New set of tokens:
+
+```javascript
 {
-    "it":"it.token.data",
-    "at":"at.token.data",
-    "rt":"rt.token.data"
+    "identityToken":"...",
+    "accessToken":"...",
+    "refreshToken":"..."
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+##### 422 Unprocessable Entity
 
-For more information about the JWT tokens see above for the info about the
-tokens.
+The submitted data is not valid.
 
-See the section Common Errors for the format of the errors.
+###### Body
 
- 
+See common errors.
 
-Logging in users (POST /api/auth/login)
----------------------------------------
 
- 
+### POST /forgot-password
 
-### Parameters (json body)
+Initiate a password recovery procedure.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#### Request
+
+##### Content-type
+
+`application/json`
+
+##### Parameters
+
+- `email`: string, required, user email address
+- `url`: string, required, link to specify in the email
+
+#### Response
+
+##### 204 No Content
+
+Successfully sent email to user with password reset link.
+
+The email contains a reset link that points to the `url` of the request
+appended with a `reset-token` query string parameter.
+
+The `reset-token` can then be used to reset the password.
+
+##### 403 Forbidden
+
+`url` is not accepted.
+
+###### Body
+
+See common errors.
+
+##### 422 Unprocessable Entity
+
+The submitted data is not valid.
+
+###### Body
+
+See common errors.
+
+
+#### Server configuration
+
+- `io.authomator.api.forgotPassword.allowedDomains`: list of allowed domains for the `url`. The protocol is also check if non-https locations are specified.
+
+
+
+### POST /reset-password
+
+Reset a password using a reset token.
+
+#### Request
+
+##### Content-type
+
+`application/json`
+
+##### Parameters
+
+- `resetToken`: string, required, reset token
+- `newPassword`: string, required, new password
+
+#### Response
+
+##### 200 Ok
+
+Password successfully reset.
+
+###### Body
+
+New set of tokens so no explicit sign-in is required after reset:
+
+```javascript
 {
-    "email":      The email of the user to login
-    "password":   The password of the user
+    "identityToken":"...",
+    "accessToken":"...",
+    "refreshToken":"..."
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+##### 422 Unprocessable Entity
 
-### Response Codes
+The submitted data is not valid.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-200 Ok                       User login was successful
-422 Unprocessable Entity     Wrong parameters / Invalid credentials
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+###### Body
 
- 
+See common errors.
 
-### Response Data
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### POST /update-password
+
+Update a password using an access token and the old password.
+
+#### Request
+
+##### Content-type
+
+`application/json`
+
+##### Parameters
+
+- `accessToken`: string, required, access token
+- `oldPassword`: string, required, old password
+- `newPassword`: string, required, new password
+
+#### Response
+
+##### 200 Ok
+
+Password successfully updated.
+
+###### Body
+
+New set of tokens so no explicit sign-in is required after update:
+
+```javascript
 {
-        "it":"it.token.data",
-        "at":"at.token.data",
-        "rt":"rt.token.data"
+    "identityToken":"...",
+    "accessToken":"...",
+    "refreshToken":"..."
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
- 
+##### 422 Unprocessable Entity
 
-For more information about the JWT tokens see above for the info about the
-tokens.
+The submitted data is not valid.
 
- 
+###### Body
 
-Refreshing tokens (POST /api/refresh/:refreshtoken)
----------------------------------------------------
-
- 
-
-### Parameters (json body)
-
-None (refreshToken is given in url). Where `<refreshToken>` is the Refresh token
-you got when the user logged in or registered. If the token is valid the server
-will give you 3 new tokens in a json.
-
- 
-
-### Response Codes
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-200 Ok                       User login was successful
-422 Bad Request              Invalid refresh token or invalid user
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Response Data
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{
-        "it":"it.token.data",
-        "at":"at.token.data",
-        "rt":"rt.token.data"
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For more information about the JWT tokens see above for the info about the
-tokens.
-
-For information on the error format see the section above on error formats
-
-
-Send password forgotten mail (POST /api/auth/forgot/mail)
----------------------------------------------------------
-
- 
-### Parameters (json body)
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{
-    "email":      The email of the user to register
-    "url":        The link that needs to be used in the email
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-The url specified in the parameters is checked if it allowed (see
-`io.authomator.api.mail.allowedDomains`). The protocol is also checked if
-non-https locations are allowed (see `io.authomator.api.mail.allowedDomains`). The
-url wil have a query parameter added with the reset token, the name of this
-parameter is `reset`. For example this would be the url sent in the email:
-
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-https://url.as.specied/with/paths?andOriginalparam=OK&reset=<reset token>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Response Codes
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-204 No Content               Mail was sent correctly
-403 Forbidden                Url is not acceptable (see body for more info)
-422 Unprocessable Entity     Wrong parameters or email not known (see body for error info)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Response Data
-
-None
-
- 
-
-Change user password (POST /api/auth/forgot/:resetToken)
--------------------------------------------------------
-
-### Parameters (json body)
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{
-    "password":              The new password to set for the user
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Response Codes
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-204 No Content               Password was reset correctly
-422 Unprocessable Entity     Wrong parameters or email not known (see body for error info)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Response Data
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{
-        "it":"it.token.data",
-        "at":"at.token.data",
-        "rt":"rt.token.data"
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For more information about the JWT tokens see above for the info about the
-tokens.
-
-For information on the error format see the section above on error formats
-
-
-
-
-Change user password (POST /api/auth/change)
--------------------------------------------------------
-
-### Parameters (json body)
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{
-	"at":					The access token of the user
-    "password":				The current password
-    "newPassword":			The new password
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Response Codes
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-200 Ok               		 Password was reset correctly
-422 Unprocessable Entity     Wrong parameters or email not known (see body for error info)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Response Data
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{
-        "it":"it.token.data",
-        "at":"at.token.data",
-        "rt":"rt.token.data"
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For more information about the JWT tokens see above for the info about the
-tokens.
-
-For information on the error format see the section above on error formats
-
+See common errors.
