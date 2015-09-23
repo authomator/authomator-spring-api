@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.service.UserService;
-import io.authomator.api.dto.ChangePasswordRequest;
+import io.authomator.api.dto.UpdatePasswordRequest;
 import io.authomator.api.dto.TokenReply;
 import io.authomator.api.dto.ValidationError;
 import io.authomator.api.exception.InvalidCredentialsException;
@@ -28,7 +28,7 @@ import io.authomator.api.jwt.JwtService;
 
 @RestController
 @RequestMapping(path="/api/auth")
-public class ChangePasswordController {
+public class UpdatePasswordController {
 
 	@Autowired
 	UserService userService;
@@ -43,13 +43,13 @@ public class ChangePasswordController {
 	 * ------------------------------------------------------------------------------------------
 	 */
 	
-	@RequestMapping(path="/change", method=RequestMethod.POST)
-	public TokenReply changePassword(@Valid @RequestBody ChangePasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
+	@RequestMapping(path="/update-password", method=RequestMethod.POST)
+	public TokenReply changePassword(@Valid @RequestBody UpdatePasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
 																							UserNotFoundException, InvalidCredentialsException, 
 																							JoseException {
 		
-		JwtClaims claims = jwtService.validateAccessToken(req.getAt());
-		User user = userService.changePassword(claims.getSubject(), req.getPassword(), req.getNewPassword());
+		JwtClaims claims = jwtService.validateAccessToken(req.getAccessToken());
+		User user = userService.updatePassword(claims.getSubject(), req.getPassword(), req.getNewPassword());
 		return jwtService.createTokensForUser(user);
 	}
 	
@@ -69,14 +69,24 @@ public class ChangePasswordController {
 	@ExceptionHandler(InvalidCredentialsException.class)
 	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
 	public ValidationError invalidCredentials(InvalidCredentialsException ex) {
-		logger.log(Level.WARN, String.format("Invalid credentials received for password change: %s", ex.getEmail()));
+		logger.log(Level.WARN, String.format("Invalid credentials received for password update: %s", ex.getEmail()));
 		return createInvalidCredentialDto();
 	}
 	
 	@ExceptionHandler(UserNotFoundException.class)
 	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
 	public ValidationError userNotFound(UserNotFoundException ex) {
-		logger.log(Level.WARN, String.format("Unknown user tried to change password: %s", ex.getEmail()));
+		logger.log(Level.WARN, String.format("Unknown user tried to update password: %s", ex.getEmail()));
 		return createInvalidCredentialDto();
 	}
+	
+	@ExceptionHandler(InvalidJwtException.class)
+	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
+	public ValidationError handleInvalidJwtException(InvalidJwtException ex){
+		logger.log(Level.ERROR, String.format("Access token is invalid for password update: %s", ex.getMessage()));
+		ValidationError validationError = new ValidationError();
+		validationError.addFieldError("accessToken", "Invalid jwt token", "InvalidToken");
+		return validationError;
+	}
+	
 }

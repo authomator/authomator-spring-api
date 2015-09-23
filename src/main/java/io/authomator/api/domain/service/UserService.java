@@ -139,7 +139,7 @@ public class UserService implements IUserService {
 	
 	//TODO: implement testing
 	/**
-	 * Change password for a user by checking his current password before changing it
+	 * Update password for a user by checking his current password before changing it
 	 * 
 	 * @param id
 	 * @param currentPassword
@@ -148,7 +148,7 @@ public class UserService implements IUserService {
 	 * @throws UserNotFoundException
 	 * @throws InvalidCredentialsException
 	 */
-	public User changePassword(final String id, final String currentPassword, final String newPassword) throws UserNotFoundException, InvalidCredentialsException{
+	public User updatePassword(final String id, final String currentPassword, final String newPassword) throws UserNotFoundException, InvalidCredentialsException{
 		
 		User user = userRepository.findOne(id);
 		

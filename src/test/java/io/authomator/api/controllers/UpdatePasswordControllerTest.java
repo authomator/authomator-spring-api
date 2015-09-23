@@ -38,7 +38,7 @@ import io.authomator.api.jwt.JwtService;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = AuthomatorApiApplication.class)
 @WebAppConfiguration
-public class ChangePasswordControllerTest {
+public class UpdatePasswordControllerTest {
 	
 	
 	private static final String USER_EMAIL = "testchange@local.tld";
@@ -93,13 +93,13 @@ public class ChangePasswordControllerTest {
     	JsonWebSignature token = jwtService.getAccessToken(user);
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("at", token.getCompactSerialization());
+    	req.put("accessToken", token.getCompactSerialization());
     	req.put("password", USER_PASSWORD);
     	req.put("newPassword", newPassword);
     	
     	mockMvc
     		.perform(
-				post("/api/auth/change")
+				post("/api/auth/update-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -126,13 +126,13 @@ public class ChangePasswordControllerTest {
     	JsonWebSignature token = jwtService.getAccessToken(user);
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("at", token.getCompactSerialization());
+    	req.put("accessToken", token.getCompactSerialization());
     	req.put("password", "incorrectcurrent");
     	req.put("newPassword", newPassword);
     	
     	mockMvc
     		.perform(
-				post("/api/auth/change")
+				post("/api/auth/update-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -165,7 +165,7 @@ public class ChangePasswordControllerTest {
     	JsonWebSignature token = jwtService.getAccessToken(user);
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("at", token.getCompactSerialization());
+    	req.put("accessToken", token.getCompactSerialization());
     	req.put("password", USER_PASSWORD);
     	req.put("newPassword", newPassword);
     	
@@ -173,7 +173,7 @@ public class ChangePasswordControllerTest {
     	
     	mockMvc
     		.perform(
-				post("/api/auth/change")
+				post("/api/auth/update-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -197,13 +197,13 @@ public class ChangePasswordControllerTest {
     public void testChangePasswordShouldNotChangePasswordWithIncorrectAccessToken() throws Throwable {
     	
     	Map<String, String> req = new HashMap<>();
-    	req.put("at", "someinvalidjwttoken");
+    	req.put("accessToken", "someinvalidjwttoken");
     	req.put("password", USER_PASSWORD);
     	req.put("newPassword", "newPass");
     	
     	mockMvc
     		.perform(
-				post("/api/auth/change")
+				post("/api/auth/update-password")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(new ObjectMapper().writeValueAsString(req))
@@ -216,7 +216,7 @@ public class ChangePasswordControllerTest {
 	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
 			.andExpect(jsonPath("$.fieldErrors").isArray())
 			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
-			.andExpect(jsonPath("$.fieldErrors[0].field").value("token"))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("accessToken"))
 	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid jwt token"))
 	        .andExpect(jsonPath("$.fieldErrors[0].code").value("InvalidToken"));
     	
