@@ -378,7 +378,7 @@ The submitted data is not valid.
 See common errors.
 
 
-### POST /update-password
+### PUT /password
 
 Update a password using an access token and the old password.
 
