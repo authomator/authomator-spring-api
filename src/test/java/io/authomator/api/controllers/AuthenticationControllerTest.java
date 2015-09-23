@@ -101,7 +101,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/login")
+				post("/api/auth/sign-in")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -139,7 +139,7 @@ public class AuthenticationControllerTest {
     	expectGenericCredentialsError(	
 	    	mockMvc
 	    		.perform(
-					post("/api/auth/login")
+					post("/api/auth/sign-in")
 					.accept(APPLICATION_JSON)
 					.contentType(APPLICATION_JSON)
 					.content(req)
@@ -161,7 +161,7 @@ public class AuthenticationControllerTest {
     	expectGenericCredentialsError(    	
 	    	mockMvc
 	    		.perform(
-					post("/api/auth/login")
+					post("/api/auth/sign-in")
 					.accept(APPLICATION_JSON)
 					.contentType(APPLICATION_JSON)
 					.content(req)
@@ -181,7 +181,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/login")
+				post("/api/auth/sign-in")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -209,7 +209,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/login")
+				post("/api/auth/sign-in")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -243,7 +243,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/signup")
+				post("/api/auth/register")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -267,7 +267,7 @@ public class AuthenticationControllerTest {
     	expectGenericCredentialsError(
 	    	mockMvc
 	    		.perform(
-					post("/api/auth/signup")
+					post("/api/auth/register")
 					.accept(APPLICATION_JSON)
 					.contentType(APPLICATION_JSON)
 					.content(req)
@@ -286,7 +286,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/signup")
+				post("/api/auth/register")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -316,7 +316,7 @@ public class AuthenticationControllerTest {
     	    	
     	mockMvc
     		.perform(
-				post("/api/auth/signup")
+				post("/api/auth/register")
 				.accept(APPLICATION_JSON)
 				.contentType(APPLICATION_JSON)
 				.content(req)
@@ -324,8 +324,8 @@ public class AuthenticationControllerTest {
     		.andDo(print())
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.message").value("Signup is not allowed"))
-            .andExpect(jsonPath("$.code").value("SignupDisabled"));
+            .andExpect(jsonPath("$.message").value("Registration is not allowed"))
+            .andExpect(jsonPath("$.code").value("RegistrationDisabled"));
     	
     }
     

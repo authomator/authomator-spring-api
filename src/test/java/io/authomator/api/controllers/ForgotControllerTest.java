@@ -243,7 +243,7 @@ public class ForgotControllerTest {
             .andExpect(jsonPath("$.refreshToken").exists())
     		.andExpect(jsonPath("$.identityToken").exists());
     	
-    	User newPassUser = userService.login(USER_EMAIL, "newpassword");
+    	User newPassUser = userService.signIn(USER_EMAIL, "newpassword");
     	Assert.notNull(newPassUser);
 
     }

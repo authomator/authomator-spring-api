@@ -111,7 +111,7 @@ public class UpdatePasswordControllerTest {
             .andExpect(jsonPath("$.refreshToken").exists())
     		.andExpect(jsonPath("$.identityToken").exists());
     	
-    	User newPassUser = userService.login(USER_EMAIL, newPassword);
+    	User newPassUser = userService.signIn(USER_EMAIL, newPassword);
     	Assert.notNull(newPassUser);
     }
     
@@ -150,7 +150,7 @@ public class UpdatePasswordControllerTest {
 	        .andExpect(jsonPath("$.fieldErrors[0].code").value("CredentialsError"));
     	
     	// password is unchanged
-    	User newPassUser = userService.login(USER_EMAIL, USER_PASSWORD);
+    	User newPassUser = userService.signIn(USER_EMAIL, USER_PASSWORD);
     	Assert.notNull(newPassUser);
     }
 	

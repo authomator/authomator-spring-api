@@ -43,15 +43,15 @@ public class AuthenticationController {
 	 * ------------------------------------------------------------------------------------------
 	 */
 	
-	@RequestMapping(path="/login", method=RequestMethod.POST)
+	@RequestMapping(path="/sign-in", method=RequestMethod.POST)
 	public TokenReply login(@Valid @RequestBody LoginRequest loginRequest) throws JoseException, UserNotFoundException, InvalidCredentialsException {		
-		User user = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+		User user = userService.signIn(loginRequest.getEmail(), loginRequest.getPassword());
 		return jwtService.createTokensForUser(user);
 	}
 	
-	@RequestMapping(path="/signup", method=RequestMethod.POST)
+	@RequestMapping(path="/register", method=RequestMethod.POST)
 	public TokenReply signup(@Valid @RequestBody LoginRequest loginRequest) throws JoseException, UserAlreadyExistsException, RegistrationNotEnabledException {		
-		User user = userService.signUp(loginRequest.getEmail(), loginRequest.getPassword());
+		User user = userService.register(loginRequest.getEmail(), loginRequest.getPassword());
 		return jwtService.createTokensForUser(user);
 	}
 	
@@ -93,7 +93,7 @@ public class AuthenticationController {
 	@ExceptionHandler(RegistrationNotEnabledException.class)
 	@ResponseStatus(value=HttpStatus.FORBIDDEN)
 	public GenericError registrationNotEnabled(RegistrationNotEnabledException ex) {
-		logger.log(Level.WARN, String.format("A signup request was received, but registrations are disabled"));		
-		return new GenericError(new Exception("Signup is not allowed"), "SignupDisabled");
+		logger.log(Level.WARN, String.format("A register request was received, but registrations are disabled"));		
+		return new GenericError(new Exception("Registration is not allowed"), "RegistrationDisabled");
 	}
 }

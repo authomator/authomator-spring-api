@@ -26,7 +26,7 @@ public class UserService implements IUserService {
 	
 	
 	/**
-	 * Signup a new user, returning the user entity
+	 * Register/Signup a new user, returning the user entity
 	 * 
 	 * @param email
 	 * @param password
@@ -34,7 +34,7 @@ public class UserService implements IUserService {
 	 * @throws RegistrationNotEnabledException 
 	 * @throws RuntimeException
 	 */
-	public User signUp(final String email, final String password) throws UserAlreadyExistsException, RegistrationNotEnabledException {
+	public User register(final String email, final String password) throws UserAlreadyExistsException, RegistrationNotEnabledException {
 		
 		if (!signupEnabled) {
 			throw new RegistrationNotEnabledException();
@@ -58,13 +58,13 @@ public class UserService implements IUserService {
 	
 	
 	/**
-	 * Login a user, returning the user entity
+	 * signIn/Login a user, returning the user entity
 	 * 
 	 * @param email
 	 * @param password
 	 * @return
 	 */
-	public User login(final String email, final String password) throws UserNotFoundException, InvalidCredentialsException {
+	public User signIn(final String email, final String password) throws UserNotFoundException, InvalidCredentialsException {
 		User user = userRepository.findByEmail(email);
 		if (user == null){
 			throw new UserNotFoundException(email);
