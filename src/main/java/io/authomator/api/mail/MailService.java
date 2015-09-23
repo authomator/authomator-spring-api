@@ -14,14 +14,7 @@ import io.authomator.api.exception.UnauthorizedDomainException;
 
 @Service
 public class MailService {
-	
-	/**
-	 * List of acceptable token types to be used in the emails
-	 */
-	public static enum TokenType {
-		reset
-	}
-	
+		
 	/**
 	 * Determine if mails sent are allowed to have non-https links.
 	 */
@@ -91,7 +84,7 @@ public class MailService {
 	 * @param token
 	 * @return
 	 */
-	private String createUrl(URL url, final TokenType tokenType, final String token) {
+	private String createResetUrl(URL url, final String token) {
 				
 		StringBuilder sb = new StringBuilder();
 		sb.append(url.getProtocol())
@@ -108,9 +101,8 @@ public class MailService {
 			sb.append(url.getQuery());
 			sb.append("&");			
 		}
-		sb.append(tokenType)
-			.append("=")
-			.append(token);		
+		sb.append("reset-token=")
+			.append(token);
 		if (url.getRef() != null){
 			sb.append("#");
 			sb.append(url.getRef());
@@ -121,7 +113,7 @@ public class MailService {
 	
 	
 	/**
-	 * Send the forgot password email
+	 * Send the forgot password email with reset link
 	 * 
 	 * @param email - email address to send the email to
 	 * @param urlString - the URL to point to when sending the token
@@ -133,9 +125,7 @@ public class MailService {
 	 * @throws EmailTransportException 
 	 */
 	public Boolean sendForgotPasswordMail(final String email, final String urlString, final String forgotToken) throws MalformedURLException, NonSecureUrlException, UnauthorizedDomainException, EmailTransportException{
-		final String forgotUrl = createUrl(parseUrl(urlString), TokenType.reset, forgotToken);
+		final String forgotUrl = createResetUrl(parseUrl(urlString), forgotToken);
 		return transport.sendForgotEmail(email, forgotUrl);
 	}
-	
-
 }

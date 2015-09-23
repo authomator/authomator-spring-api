@@ -105,7 +105,7 @@ public class UserService implements IUserService {
 	 * @return
 	 * @throws UserNotFoundException
 	 */
-	public User forgot(final String email)  throws UserNotFoundException{
+	public User forgotPassword(final String email)  throws UserNotFoundException{
 		User user = userRepository.findByEmail(email);
 		
 		if (user == null){
@@ -124,7 +124,7 @@ public class UserService implements IUserService {
 	 * @return User
 	 * @throws UserNotFoundException
 	 */
-	public User resetForgot(final String id, final String newPassword) throws UserNotFoundException{
+	public User resetPassword(final String id, final String newPassword) throws UserNotFoundException{
 		
 		User user = userRepository.findOne(id);
 		

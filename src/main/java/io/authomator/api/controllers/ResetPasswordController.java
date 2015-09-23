@@ -14,7 +14,6 @@ import org.jose4j.lang.JoseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,7 +24,7 @@ import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.service.UserService;
 import io.authomator.api.dto.ForgotPasswordRequest;
 import io.authomator.api.dto.GenericError;
-import io.authomator.api.dto.ResetForgotPasswordRequest;
+import io.authomator.api.dto.ResetPasswordRequest;
 import io.authomator.api.dto.TokenReply;
 import io.authomator.api.dto.ValidationError;
 import io.authomator.api.exception.EmailTransportException;
@@ -36,8 +35,7 @@ import io.authomator.api.jwt.JwtService;
 import io.authomator.api.mail.MailService;
 
 @RestController
-@RequestMapping("/api/auth")
-public class ForgotController {
+public class ResetPasswordController {
 	
 	@Autowired
 	UserService userService;
@@ -55,25 +53,25 @@ public class ForgotController {
 	 * ------------------------------------------------------------------------------------------
 	 */
 	
-	@RequestMapping(path="/forgot/mail", method=RequestMethod.POST)
+	@RequestMapping(path="/forgot-password", method=RequestMethod.POST)
 	@ResponseStatus(code=HttpStatus.NO_CONTENT)
 	public void sendMailResetToken(
 			@Valid @RequestBody final ForgotPasswordRequest req) throws UserNotFoundException, MalformedURLException, 
 																		NonSecureUrlException, UnauthorizedDomainException, 
 																		EmailTransportException, JoseException {
 		
-		User user = userService.forgot(req.getEmail());
+		User user = userService.forgotPassword(req.getEmail());
 		JsonWebSignature jwt = jwtService.getForgotPasswordToken(user);
 		mailService.sendForgotPasswordMail(user.getEmail(), req.getUrl(), jwt.getCompactSerialization());
 	}
 	
 
-	@RequestMapping(path="/forgot/reset", method=RequestMethod.POST)
+	@RequestMapping(path="/reset-password", method=RequestMethod.POST)
 	public TokenReply forgotPassword(			
-			@Valid @RequestBody() final ResetForgotPasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
+			@Valid @RequestBody() final ResetPasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
 																			UserNotFoundException, JoseException {
-		JwtClaims claims = jwtService.validateForgotToken(req.getFt());
-		User user = userService.resetForgot(claims.getSubject(), req.getPassword());
+		JwtClaims claims = jwtService.validateForgotToken(req.getResetToken());
+		User user = userService.resetPassword(claims.getSubject(), req.getPassword());
 		return jwtService.createTokensForUser(user);
 	}
 	
@@ -109,5 +107,14 @@ public class ForgotController {
 	public GenericError unauthorizedDomain(UnauthorizedDomainException ex){
 		logger.log(Level.WARN, String.format("User tried to send forgot password to unauthorized domain: %s", ex.getUrl()));
 		return new GenericError(new Exception("The requested url is not allowed"), "UnauthorizedDomain");
+	}
+	
+	@ExceptionHandler(InvalidJwtException.class)
+	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
+	public ValidationError handleInvalidJwtException(InvalidJwtException ex){
+		logger.log(Level.ERROR, String.format("Reset token is invalid for password reset: %s", ex.getMessage()));
+		ValidationError validationError = new ValidationError();
+		validationError.addFieldError("resetToken", "Invalid jwt token", "InvalidToken");
+		return validationError;
 	}
 }
