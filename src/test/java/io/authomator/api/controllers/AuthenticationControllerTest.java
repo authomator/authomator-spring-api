@@ -5,6 +5,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.HashMap;
+
 import static org.hamcrest.Matchers.*;
 
 import org.junit.After;
@@ -22,6 +25,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.authomator.api.AuthomatorApiApplication;
 import static io.authomator.api.TestUtil.APPLICATION_JSON;
@@ -222,9 +227,35 @@ public class AuthenticationControllerTest {
     		.andExpect(jsonPath("$.fieldErrors").isArray())
     		.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
     		.andExpect(jsonPath("$.fieldErrors[0].field").value("password"))
-            .andExpect(jsonPath("$.fieldErrors[0].message", startsWith("length must be between")))
+            .andExpect(jsonPath("$.fieldErrors[0].message").value("length must be between 6 and 32"))
             .andExpect(jsonPath("$.fieldErrors[0].code").value("Length"));    				
     }
+    
+    @Test
+    public void getAccount_for_missing_password_returns_unprocessable() throws Exception {
+    	    	
+    	HashMap<String,String> req = new HashMap<>();
+    	req.put("email", USER_EMAIL);
+    	    	
+    	mockMvc
+    		.perform(
+				post("/sign-in")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.message").value("Validation Failed"))
+            .andExpect(jsonPath("$.code").value("ValidationFailed"))
+    		.andExpect(jsonPath("$.fieldErrors").isArray())
+    		.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+    		.andExpect(jsonPath("$.fieldErrors[0].field").value("password"))
+            .andExpect(jsonPath("$.fieldErrors[0].message").value("may not be empty"))
+            .andExpect(jsonPath("$.fieldErrors[0].code").value("NotBlank"));				
+    }
+    
     
     /*
 	  ___ _                      _          _      
@@ -301,6 +332,59 @@ public class AuthenticationControllerTest {
     		.andExpect(jsonPath("$.fieldErrors[0].field").value("email"))
             .andExpect(jsonPath("$.fieldErrors[0].message").value("not a well-formed email address"))
             .andExpect(jsonPath("$.fieldErrors[0].code").value("Email"));
+    }
+    
+    
+    @Test
+    public void signup_with_missing_password_returns_unprocessable() throws Exception {
+    	    	
+    	HashMap<String,String> req = new HashMap<>();
+    	req.put("email", USER_EMAIL);
+    	    	
+    	mockMvc
+    		.perform(
+				post("/sign-in")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.message").value("Validation Failed"))
+            .andExpect(jsonPath("$.code").value("ValidationFailed"))
+    		.andExpect(jsonPath("$.fieldErrors").isArray())
+    		.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+    		.andExpect(jsonPath("$.fieldErrors[0].field").value("password"))
+            .andExpect(jsonPath("$.fieldErrors[0].message").value("may not be empty"))
+            .andExpect(jsonPath("$.fieldErrors[0].code").value("NotBlank"));			
+    }
+    
+    
+    @Test
+    public void signup_with_too_long_password_returns_unprocessable() throws Exception {
+    	    	
+    	HashMap<String,String> req = new HashMap<>();
+    	req.put("email", USER_EMAIL);
+    	req.put("password", "123456789012345678901234567890333"); // max 32
+    	    	
+    	mockMvc
+    		.perform(
+				post("/sign-in")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.message").value("Validation Failed"))
+            .andExpect(jsonPath("$.code").value("ValidationFailed"))
+    		.andExpect(jsonPath("$.fieldErrors").isArray())
+    		.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+    		.andExpect(jsonPath("$.fieldErrors[0].field").value("password"))
+            .andExpect(jsonPath("$.fieldErrors[0].message").value("length must be between 6 and 32"))
+            .andExpect(jsonPath("$.fieldErrors[0].code").value("Length"));			
     }
     
     
