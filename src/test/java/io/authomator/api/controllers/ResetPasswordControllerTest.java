@@ -158,6 +158,61 @@ public class ResetPasswordControllerTest {
     	verify(mockTransport, never()).sendForgotEmail(null, null);
     }
     
+    @Test
+    public void sendMailResetToken_sends_unprocessable_for_missing_url() throws Exception {
+    	    	
+    	HashMap<String,String> req = new HashMap<>();
+    	req.put("email", USER_EMAIL);
+    	    	
+    	mockMvc
+    		.perform(
+				post("/forgot-password")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+	        .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(jsonPath("$.message").value("Validation Failed"))
+	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
+			.andExpect(jsonPath("$.fieldErrors").isArray())
+			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("url"))
+	        .andExpect(jsonPath("$.fieldErrors[0].message").value("may not be empty"))
+	        .andExpect(jsonPath("$.fieldErrors[0].code").value("NotBlank"));
+    	
+    	verify(mockTransport, never()).sendForgotEmail(null, null);
+    }
+    
+    
+    @Test
+    public void sendMailResetToken_sends_unprocessable_for_missing_email() throws Exception {
+    	    	
+    	HashMap<String,String> req = new HashMap<>();
+    	req.put("url", RESET_URL);
+    	    	
+    	mockMvc
+    		.perform(
+				post("/forgot-password")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+	        .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(jsonPath("$.message").value("Validation Failed"))
+	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
+			.andExpect(jsonPath("$.fieldErrors").isArray())
+			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("email"))
+	        .andExpect(jsonPath("$.fieldErrors[0].message").value("may not be empty"))
+	        .andExpect(jsonPath("$.fieldErrors[0].code").value("NotBlank"));
+    	
+    	verify(mockTransport, never()).sendForgotEmail(null, null);
+    }
+    
     
     @Test
     public void sendMailResetToken_sends_unauthorized_for_non_secure_url() throws Exception {
