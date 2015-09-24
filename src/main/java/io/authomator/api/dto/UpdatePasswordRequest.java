@@ -8,10 +8,12 @@ public class UpdatePasswordRequest {
 	@NotBlank
 	private String accessToken;
 	
-	@Length(min=6)
+	@NotBlank
+	@Length(min=6, max=32)
 	private String oldPassword;
 	
-	@Length(min=6)
+	@NotBlank
+	@Length(min=6, max=32)
 	private String newPassword;
 
 	public String getAccessToken() {

@@ -116,6 +116,82 @@ public class UpdatePasswordControllerTest {
     }
     
     @Test
+    public void testChangePasswordShouldReturnUnprocessableIfNewPasswordIsMissing() throws Throwable {
+    	
+    	
+    	User user = userRepository.findByEmail(USER_EMAIL);
+    	Assert.notNull(user);
+    	
+    	JsonWebSignature token = jwtService.getAccessToken(user);
+    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("accessToken", token.getCompactSerialization());
+    	req.put("oldPassword", USER_PASSWORD);
+    	
+    	mockMvc
+    		.perform(
+				put("/password")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(jsonPath("$.message").value("Validation Failed"))
+	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
+			.andExpect(jsonPath("$.fieldErrors").isArray())
+			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("newPassword"))
+	        .andExpect(jsonPath("$.fieldErrors[0].message").value("may not be empty"))
+	        .andExpect(jsonPath("$.fieldErrors[0].code").value("NotBlank"));
+    	
+    	// password is unchanged
+    	User newPassUser = userService.signIn(USER_EMAIL, USER_PASSWORD);
+    	Assert.notNull(newPassUser);
+    }
+    
+    
+    @Test
+    public void testChangePasswordShouldReturnUnprocessableIfNewPasswordIsTooShort() throws Throwable {
+    	    	
+    	User user = userRepository.findByEmail(USER_EMAIL);
+    	Assert.notNull(user);
+    	
+    	JsonWebSignature token = jwtService.getAccessToken(user);
+    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("accessToken", token.getCompactSerialization());
+    	req.put("oldPassword", USER_PASSWORD);
+    	req.put("newPassword", "1");
+    	
+    	mockMvc
+    		.perform(
+				put("/password")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(jsonPath("$.message").value("Validation Failed"))
+	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
+			.andExpect(jsonPath("$.fieldErrors").isArray())
+			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("newPassword"))
+	        .andExpect(jsonPath("$.fieldErrors[0].message").value("length must be between 6 and 32"))
+	        .andExpect(jsonPath("$.fieldErrors[0].code").value("Length"));
+    	
+    	// password is unchanged
+    	User newPassUser = userService.signIn(USER_EMAIL, USER_PASSWORD);
+    	Assert.notNull(newPassUser);
+    }
+    
+    
+    @Test
     public void testChangePasswordShouldNotChangePasswordIfCurrentPasswordIsIncorrect() throws Throwable {
     	
     	final String newPassword = "newPass";
