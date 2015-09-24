@@ -228,7 +228,7 @@ public class ResetPasswordControllerTest {
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("resetToken", token.getCompactSerialization());
-    	req.put("password", "newpassword");
+    	req.put("newPassword", "newpassword");
     	
     	mockMvc
     		.perform(
@@ -246,7 +246,70 @@ public class ResetPasswordControllerTest {
     	
     	User newPassUser = userService.signIn(USER_EMAIL, "newpassword");
     	Assert.notNull(newPassUser);
+    }
+    
+    
+    @Test
+    public void reset_with_valid_token_missing_new_passwords() throws Exception {
 
+    	User user = userRepository.findByEmail(USER_EMAIL);
+    	System.out.println(user.getPassword());
+    	Assert.notNull(user);
+    	
+    	JsonWebSignature token = jwtService.getForgotPasswordToken(user);
+    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("resetToken", token.getCompactSerialization());    	
+    	
+    	mockMvc
+    		.perform(
+				post("/reset-password")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.code").value("ValidationFailed"))
+            .andExpect(jsonPath("$.message").value("Validation Failed"))
+			.andExpect(jsonPath("$.fieldErrors").isArray())
+			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("newPassword"))
+	        .andExpect(jsonPath("$.fieldErrors[0].message").value("may not be empty"))
+	        .andExpect(jsonPath("$.fieldErrors[0].code").value("NotBlank"));
+    }
+    
+    @Test
+    public void reset_with_valid_token_too_short_new_passwords() throws Exception {
+
+    	User user = userRepository.findByEmail(USER_EMAIL);
+    	System.out.println(user.getPassword());
+    	Assert.notNull(user);
+    	
+    	JsonWebSignature token = jwtService.getForgotPasswordToken(user);
+    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("resetToken", token.getCompactSerialization());
+    	req.put("newPassword", "12345");  // min(6)
+    	
+    	mockMvc
+    		.perform(
+				post("/reset-password")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.code").value("ValidationFailed"))
+            .andExpect(jsonPath("$.message").value("Validation Failed"))
+			.andExpect(jsonPath("$.fieldErrors").isArray())
+			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("newPassword"))
+	        .andExpect(jsonPath("$.fieldErrors[0].message").value("length must be between 6 and 32")) // also check upper bound
+	        .andExpect(jsonPath("$.fieldErrors[0].code").value("Length"));
     }
     
 
@@ -262,7 +325,7 @@ public class ResetPasswordControllerTest {
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("resetToken", token.getCompactSerialization());
-    	req.put("password", "newpassword");
+    	req.put("newPassword", "newpassword");
     	
     	mockMvc
     		.perform(
@@ -295,7 +358,7 @@ public class ResetPasswordControllerTest {
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("resetToken", token.getCompactSerialization() + "defect");
-    	req.put("password", "newpassword");
+    	req.put("newPassword", "newpassword");
     	
     	mockMvc
     		.perform(

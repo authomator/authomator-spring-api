@@ -71,7 +71,7 @@ public class ResetPasswordController {
 			@Valid @RequestBody() final ResetPasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
 																			UserNotFoundException, JoseException {
 		JwtClaims claims = jwtService.validateForgotToken(req.getResetToken());
-		User user = userService.resetPassword(claims.getSubject(), req.getPassword());
+		User user = userService.resetPassword(claims.getSubject(), req.getNewPassword());
 		return jwtService.createTokensForUser(user);
 	}
 	

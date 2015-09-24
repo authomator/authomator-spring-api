@@ -8,9 +8,9 @@ public class ResetPasswordRequest {
 	@NotBlank
 	private String resetToken;
 
-	
-	@Length(min=6)
-	private String password;
+	@NotBlank
+	@Length(min=6, max=32)
+	private String newPassword;
 		
 
 	public String getResetToken() {
@@ -20,12 +20,13 @@ public class ResetPasswordRequest {
 	public void setResetToken(String resetToken) {
 		this.resetToken = resetToken;
 	}
-	
-	public String getPassword() {
-		return password;
+
+	public String getNewPassword() {
+		return newPassword;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
-	}	
+	public void setNewPassword(String newPassword) {
+		this.newPassword = newPassword;
+	}
+	
 }
