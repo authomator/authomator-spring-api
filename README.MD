@@ -422,6 +422,10 @@ See common errors.
 
 ## Change log
 
+### v1.0.1
+
+- Fixes some validation issues and incorrect json field in reset-password
+
 ### v1.0.0
 
 - Initial production version
