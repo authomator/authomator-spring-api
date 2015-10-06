@@ -204,6 +204,26 @@ public class JwtServiceTest {
 		checkClaimExpires(claims, defaultTtlRefresh);
 	}
 	
+	
+	@Test
+	public void getConfirmEmailToken() throws JoseException, InvalidJwtException, MalformedClaimException {
+		User user = createTestUser();
+		String jwt = jwtService.getConfirmEmailToken(user).getCompactSerialization();		
+		JwtConsumerBuilder cb = new JwtConsumerBuilder();
+		cb.setVerificationKey(new HmacKey(defaultInternalSecret.getBytes()));
+		cb.setJwsAlgorithmConstraints(AlgorithmConstraints.DISALLOW_NONE);
+		cb.setExpectedAudience(defaultIssuer + "#confirm-email");
+		cb.setExpectedIssuer(defaultIssuer);
+		JwtConsumer cons = cb.build(); 		
+		JwtClaims claims = cons.process(jwt).getJwtClaims();
+
+		assertEquals(user.getId(),claims.getSubject());	
+		assertNull(claims.getClaimValue("email"));
+		assertNull(claims.getStringListClaimValue("role"));
+		checkClaimExpires(claims, defaultTtlRefresh);
+	}
+	
+	
 	@Test
 	public void getForgotPasswordToken() throws JoseException, InvalidJwtException, MalformedClaimException {
 		User user = createTestUser();
@@ -270,6 +290,17 @@ public class JwtServiceTest {
 		return forgot;
 	}
 	
+	private JwtClaims createValidConfirmEmailClaims(){
+		JwtClaims confirm = new JwtClaims();
+		confirm.setIssuer(defaultIssuer);
+		confirm.setAudience(defaultIssuer + "#confirm-email");
+		confirm.setExpirationTimeMinutesInTheFuture(10);
+		confirm.setIssuedAtToNow();
+		confirm.setNotBeforeMinutesInThePast(1);
+		confirm.setSubject("useridConfirmEmail");
+		return confirm;
+	}
+	
 	private JwtClaims createValidAccessClaims(){
 		JwtClaims access = new JwtClaims();
 		access.setIssuer(defaultIssuer);
@@ -313,6 +344,20 @@ public class JwtServiceTest {
 		Assert.isInstanceOf(JwtClaims.class, forgotParsed);
 		assertEquals("useridForgot12", ((JwtClaims)forgotParsed).getSubject());
 	}
+	
+	
+	@Test
+	public void validateConfirmEmailToken() throws InvalidJwtException, MalformedClaimException, JoseException{
+		
+		JwtClaims confirm = createValidConfirmEmailClaims();		
+		JsonWebSignature forgotJwt = signClaims(confirm, defaultInternalSecret);
+		
+		Object confirmParsed = jwtService.validateConfirmEmailToken(forgotJwt.getCompactSerialization());
+		assertNotNull(confirmParsed);
+		Assert.isInstanceOf(JwtClaims.class, confirmParsed);
+		assertEquals("useridConfirmEmail", ((JwtClaims)confirmParsed).getSubject());
+	}
+	
 	
 	@Test(expected=InvalidJwtException.class)
 	public void validateForgotTokenShouldNotAcceptRefreshToken() throws InvalidJwtException, JoseException{

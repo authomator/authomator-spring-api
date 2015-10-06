@@ -25,6 +25,7 @@ public class JwtService {
 
 	private static final String REFRESH_TOKEN_SUFFIX = "#refresh";
 	private static final String FORGOT_TOKEN_SUFFIX = "#forgot";
+	private static final String CONFIRM_EMAIL_TOKEN_SUFFIX = "#confirm-email";
 
 	/**
 	 * Secret used to sign the jwt
@@ -244,6 +245,16 @@ public class JwtService {
 		return signInternalClaims(getInternalClaims(user, FORGOT_TOKEN_SUFFIX, ttlForgot));
 	}
 	
+	/**
+	 * Create the email confirmation token for the specified user
+	 * 
+	 * @param user
+	 * @return
+	 */
+	public JsonWebSignature getConfirmEmailToken(User user) {
+		return signInternalClaims(getInternalClaims(user, CONFIRM_EMAIL_TOKEN_SUFFIX, ttlRefresh));
+	}
+	
 	
 	/**
 	 * Create the tokens for a user
@@ -302,6 +313,18 @@ public class JwtService {
 	 */
 	public JwtClaims validateForgotToken(String jwt) throws InvalidJwtException {
 		return validateInternalToken(jwt, FORGOT_TOKEN_SUFFIX);
+	}
+	
+	
+	/**
+	 * Validate a confirm email token (in compact serialization format)
+	 * 
+	 * @param jwt
+	 * @return
+	 * @throws InvalidJwtException
+	 */
+	public JwtClaims validateConfirmEmailToken(String jwt) throws InvalidJwtException {
+		return validateInternalToken(jwt, CONFIRM_EMAIL_TOKEN_SUFFIX);
 	}
 	
 	/**
