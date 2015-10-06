@@ -18,6 +18,8 @@ public class User {
 	@Indexed(unique=true)
 	private String email;
 
+	private Boolean emailVerified = false;
+	
 	private String password;
 	
 	private List<String> roles;			// User roles
@@ -36,6 +38,14 @@ public class User {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public Boolean getEmailVerified() {
+		return emailVerified;
+	}
+
+	public void setEmailVerified(Boolean emailVerified) {
+		this.emailVerified = emailVerified;
 	}
 
 	public String getPassword() {
