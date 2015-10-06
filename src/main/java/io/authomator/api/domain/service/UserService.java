@@ -5,11 +5,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import io.authomator.api.controllers.EmailConfirmationController;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.repository.UserRepository;
+import io.authomator.api.exception.EmailConfirmationNotEnabledException;
 import io.authomator.api.exception.InvalidCredentialsException;
 import io.authomator.api.exception.RegistrationNotEnabledException;
 import io.authomator.api.exception.UserAlreadyExistsException;
+import io.authomator.api.exception.UserEmailConfirmedAlreadyException;
 import io.authomator.api.exception.UserNotFoundException;
 
 @Service
@@ -20,6 +23,9 @@ public class UserService implements IUserService {
 	
 	@Value("${io.authomator.api.registration.default.roles:}")
 	private String[] defaultRoles;
+	
+	@Value("${io.authomator.api.verification.email.enabled:true}")
+	private boolean verificationEmailEnabled = false;
 	
 	@Autowired
 	private UserRepository userRepository;
@@ -164,4 +170,53 @@ public class UserService implements IUserService {
 		return userRepository.save(user);
 		
 	}
+	
+	
+	/**
+	 * Retrieve the user for email confirmation, taking in account all business logic if
+	 * verification is possible for this account
+	 * 
+	 * @param id
+	 * @return
+	 * @throws EmailConfirmationNotEnabledException
+	 * @throws UserNotFoundException
+	 * @throws UserEmailConfirmedAlreadyException 
+	 */
+	public User getUserForEmailConfirmation(final String id) throws EmailConfirmationNotEnabledException, UserNotFoundException, UserEmailConfirmedAlreadyException{
+		
+		if (!verificationEmailEnabled) {
+			throw new EmailConfirmationNotEnabledException(id);
+		}
+		
+		User user = userRepository.findOne(id);
+		
+		if (user == null) {
+			throw new UserNotFoundException("mongoId: " + id);
+		}
+		
+		if (user.getEmailVerified()){
+			throw new UserEmailConfirmedAlreadyException(user.getEmail());
+		}
+		
+		return user;
+	}
+	
+	/**
+	 * Confirm the email address for a user
+	 * 
+	 * @param id - the user id
+	 * @return
+	 * @throws UserNotFoundException
+	 * @throws UserEmailConfirmedAlreadyException 
+	 * @throws EmailConfirmationNotEnabledException 
+	 */
+	public User confirmEmail(final String id) throws UserNotFoundException, EmailConfirmationNotEnabledException, UserEmailConfirmedAlreadyException {
+		
+		User user = getUserForEmailConfirmation(id);		
+		user.setEmailVerified(true);
+		return userRepository.save(user);
+	}
+	
+	
+	
 }

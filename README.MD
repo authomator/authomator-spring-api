@@ -189,6 +189,7 @@ See common errors.
 
 - `io.authomator.api.register.allow`: set to `false` to disable new registrations
 - `io.authomator.api.register.default.roles`: specify roles you want to assign to new users.
+- `io.authomator.api.verification.email.enabled`: set to `false` to disable email verification mails
 
 For example, to allow registration and assign every new user the role `“USER"`:
 
