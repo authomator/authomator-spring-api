@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -67,6 +68,14 @@ public class ExceptionHandling {
 		return validationError;
 	}
 
+	
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	@ResponseStatus(value=HttpStatus.BAD_REQUEST)
+	@ResponseBody
+	public GenericError handleEmptyBodyRequest(HttpMessageNotReadableException ex){
+		logger.log(Level.ERROR, String.format("Invalid http request received: %s", ex.getMessage()));		
+		return new GenericError(new RuntimeException("Invalid http request"), "HttpMessageNotReadable");
+	}
 	
 	@ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

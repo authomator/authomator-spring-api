@@ -104,6 +104,16 @@ Contains only `sub` and `roles`. Due to its small size, it is recommended to use
 
 ## Common errors
 
+
+### 400 Bad Request
+
+```javascript
+{
+	"message": "Invalid http request",
+	"code": "HttpMessageNotReadable"
+}
+```
+
 ### 403 Forbidden
 
 ```javascript
