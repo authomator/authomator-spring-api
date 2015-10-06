@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,7 +49,7 @@ public class EmailConfirmationController {
 	private static Logger logger = Logger.getLogger(EmailConfirmationController.class);
 	
 
-	@RequestMapping("/send-confirm-email")
+	@RequestMapping(value="/send-confirm-email", method=RequestMethod.POST)
 	@ResponseStatus(value=HttpStatus.NO_CONTENT)
 	public void sendConfirmEmail(@Valid @RequestBody SendConfirmEmailRequest req)
 			throws InvalidJwtException, MalformedURLException, NonSecureUrlException, UnauthorizedDomainException,
