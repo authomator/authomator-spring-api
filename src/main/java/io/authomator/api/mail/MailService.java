@@ -14,7 +14,17 @@ import io.authomator.api.exception.UnauthorizedDomainException;
 
 @Service
 public class MailService {
-		
+
+	/**
+	 * Name of the url query param to use for passing the reset token
+	 */
+	private static final String URL_RESET_TOKEN_NAME = "reset-token";
+	
+	/**
+	 * Name of the url query param to use for passing the confirm email token
+	 */
+	private static final String URL_CONFIRM_EMAIL_TOKEN_NAME = "confirm-email-token";
+	
 	/**
 	 * Determine if mails sent are allowed to have non-https links.
 	 */
@@ -80,11 +90,11 @@ public class MailService {
 	 * Create a url with the forgot/reset token
 	 * 
 	 * @param url
-	 * @param tokenType
+	 * @param tokenName
 	 * @param token
 	 * @return
 	 */
-	private String createResetUrl(URL url, final String token) {
+	private String createTokenUrl(URL url, final String tokenName, final String token) {
 				
 		StringBuilder sb = new StringBuilder();
 		sb.append(url.getProtocol())
@@ -101,7 +111,8 @@ public class MailService {
 			sb.append(url.getQuery());
 			sb.append("&");			
 		}
-		sb.append("reset-token=")
+		sb.append(tokenName)
+			.append("=")
 			.append(token);
 		if (url.getRef() != null){
 			sb.append("#");
@@ -125,7 +136,25 @@ public class MailService {
 	 * @throws EmailTransportException 
 	 */
 	public Boolean sendForgotPasswordMail(final String email, final String urlString, final String forgotToken) throws MalformedURLException, NonSecureUrlException, UnauthorizedDomainException, EmailTransportException{
-		final String forgotUrl = createResetUrl(parseUrl(urlString), forgotToken);
+		final String forgotUrl = createTokenUrl(parseUrl(urlString), URL_RESET_TOKEN_NAME, forgotToken);
 		return transport.sendForgotEmail(email, forgotUrl);
+	}
+	
+	
+	/**
+	 * Send the confirm email email with confirmation link
+	 * 
+	 * @param email - email address to send the email to
+	 * @param urlString - the URL to point to when sending the token
+	 * @param forgotToken - the JWT token that authorizes a confirm email
+	 * 
+	 * @throws MalformedURLException
+	 * @throws NonSecureUrlException
+	 * @throws UnauthorizedDomainException
+	 * @throws EmailTransportException 
+	 */
+	public Boolean sendConfirmEmailMail(final String email, final String urlString, final String confirmToken) throws MalformedURLException, NonSecureUrlException, UnauthorizedDomainException, EmailTransportException{
+		final String confirmUrl = createTokenUrl(parseUrl(urlString), URL_CONFIRM_EMAIL_TOKEN_NAME, confirmToken);
+		return transport.sendForgotEmail(email, confirmUrl);
 	}
 }
