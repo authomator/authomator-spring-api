@@ -93,7 +93,7 @@ public class MailServiceTest {
 		
 		mailService.sendConfirmEmailMail("test@local.local", "https://authomator.io/", "test");
 		
-		verify(mock, times(1)).sendForgotEmail("test@local.local", "https://authomator.io/?confirm-email-token=test");
+		verify(mock, times(1)).sendConfirmEmailEmail("test@local.local", "https://authomator.io/?confirm-email-token=test");
 	}
 	
 	
