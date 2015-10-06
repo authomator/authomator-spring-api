@@ -170,10 +170,12 @@ public class JwtServiceTest {
 	@Test
 	public void getAccessToken() throws JoseException, InvalidJwtException, MalformedClaimException {
 		User user = createTestUser();
+		user.setEmailVerified(true);
 		String jwt = jwtService.getAccessToken(user).getCompactSerialization();
 		testUserToken(jwt);
 		JwtClaims accessClaims = testUserToken(jwt);
 		assertNull(accessClaims.getClaimValue("email"));
+		assertTrue((boolean)accessClaims.getClaimValue("ev"));
 	}
 	
 	
@@ -183,6 +185,7 @@ public class JwtServiceTest {
 		String jwt = jwtService.getIdentityToken(user).getCompactSerialization();		
 		JwtClaims idClaims = testUserToken(jwt);
 		assertEquals(user.getEmail(), idClaims.getClaimValue("email"));
+		assertFalse((boolean)idClaims.getClaimValue("emailVerified"));
 	}
 	
 	

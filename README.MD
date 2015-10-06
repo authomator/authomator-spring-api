@@ -67,7 +67,8 @@ Contains all information that Authomator knows about the user.
     "nbf":1441713594,
     "sub":"5575e89dd9ebb6c28fa5b358",
     "roles":["USER","ADMIN"],
-    "email":"testuser@mydomain.tld"
+    "email":"testuser@mydomain.tld",
+    "emailVerified": false
 }
 ```
 
@@ -83,7 +84,8 @@ Contains only `sub` and `roles`. Due to its small size, it is recommended to use
     "iat":1441713654,
     "nbf":1441713594,
     "sub":"5575e89dd9ebb6c28fa5b358",
-    "roles":["USER","ADMIN"]
+    "roles":["USER","ADMIN"],
+    "ev" : false
 }
 ```
 

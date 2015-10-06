@@ -200,7 +200,9 @@ public class JwtService {
 	 * @return JsonWebSignature
 	 */
 	public JsonWebSignature getAccessToken(User user) {
-		return signUserClaims(getUserClaims(user));
+		JwtClaims claims = getUserClaims(user);
+		claims.setClaim("ev", user.getEmailVerified());
+		return signUserClaims(claims);
 	}
 
 	/**
@@ -218,6 +220,7 @@ public class JwtService {
 	public JsonWebSignature getIdentityToken(User user) {
 		JwtClaims claims = getUserClaims(user);
 		claims.setClaim("email", user.getEmail());
+		claims.setClaim("emailVerified", user.getEmailVerified());
 		return signUserClaims(claims);
 	}
 
