@@ -26,20 +26,30 @@ public class MailTranportMandrillTemplate implements MailTransport {
 	
 	private final String mandrillForgotPasswordTemplate;
 	
+	private final String mandrillConfirmEmailTemplate;
+	
 	private final MandrillApi mandrillApi;
 		
 	@Autowired
 	public MailTranportMandrillTemplate(
 			@Value("${io.authomator.api.mandrill.key}") String mandrillKey,
-			@Value("${io.authomator.api.mandrill.template.forgotpassword:forgot-password}") String mandrillForgotPasswordTemplate) {
+			@Value("${io.authomator.api.mandrill.template.forgotpassword:forgot-password}") String mandrillForgotPasswordTemplate,
+			@Value("${io.authomator.api.mandrill.template.confirmemail:confirm-email}") String mandrillConfirmEmailTemplate ) {
 		this.mandrillKey = mandrillKey;
 		this.mandrillForgotPasswordTemplate = mandrillForgotPasswordTemplate;
+		this.mandrillConfirmEmailTemplate = mandrillConfirmEmailTemplate;
 		this.mandrillApi = new MandrillApi(this.mandrillKey);
 	}
 	
-	@Override
-	public Boolean sendForgotEmail(String email, String urlString) throws EmailTransportException {
-						
+	
+	/**
+	 * Create a default MandrillMessage with defaults and email set
+	 * 
+	 * @param email
+	 * @return
+	 */
+	private MandrillMessage createMandrillMessage(final String email) {
+		
 		MandrillMessage m = new MandrillMessage();
 		ArrayList<Recipient> recipients = new ArrayList<Recipient>();
 		Recipient recipient = new Recipient();
@@ -48,6 +58,15 @@ public class MailTranportMandrillTemplate implements MailTransport {
 		m.setTo(recipients);
 		m.setTrackClicks(false);
 		m.setViewContentLink(false);
+		
+		return m;
+	}
+
+	
+	@Override
+	public Boolean sendForgotEmail(String email, String urlString) throws EmailTransportException {
+						
+		MandrillMessage m = createMandrillMessage(email);
 		
 		List<MergeVarBucket> mergeVarBuckets = new LinkedList<>();
 		MergeVarBucket mergeVarBucket = new MergeVarBucket();
@@ -68,6 +87,40 @@ public class MailTranportMandrillTemplate implements MailTransport {
 		
 		try {
 			status =  mandrillApi.messages().sendTemplate(mandrillForgotPasswordTemplate, null, m, false);
+		} catch (Exception e) {
+			throw new EmailTransportException("An error occured while sending email to " + email, e);
+		}
+		
+		if (status != null) {
+			return status[0].getStatus().equals("sent");
+		}
+		return false;		
+	}
+		
+	@Override
+	public Boolean sendConfirmEmailEmail(String email, String urlString) throws EmailTransportException {
+						
+		MandrillMessage m = createMandrillMessage(email);
+		
+		List<MergeVarBucket> mergeVarBuckets = new LinkedList<>();
+		MergeVarBucket mergeVarBucket = new MergeVarBucket();
+		mergeVarBucket.setRcpt(email);
+		
+		MergeVar resetUrl = new MergeVar();
+		resetUrl.setName("confirmEmailUrl");
+		resetUrl.setContent(urlString);
+		
+		List<MergeVar> mergeVars = new ArrayList<>();
+		mergeVars.add(resetUrl);
+				
+		mergeVarBucket.setVars(mergeVars.toArray(new MergeVar[0]));
+		mergeVarBuckets.add(mergeVarBucket);
+		m.setMergeVars(mergeVarBuckets);
+		
+		MandrillMessageStatus[] status = null;
+		
+		try {
+			status =  mandrillApi.messages().sendTemplate(mandrillConfirmEmailTemplate, null, m, false);
 		} catch (Exception e) {
 			throw new EmailTransportException("An error occured while sending email to " + email, e);
 		}
