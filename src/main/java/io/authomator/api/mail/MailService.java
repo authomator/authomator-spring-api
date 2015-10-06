@@ -155,6 +155,6 @@ public class MailService {
 	 */
 	public Boolean sendConfirmEmailMail(final String email, final String urlString, final String confirmToken) throws MalformedURLException, NonSecureUrlException, UnauthorizedDomainException, EmailTransportException{
 		final String confirmUrl = createTokenUrl(parseUrl(urlString), URL_CONFIRM_EMAIL_TOKEN_NAME, confirmToken);
-		return transport.sendForgotEmail(email, confirmUrl);
+		return transport.sendConfirmEmailEmail(email, confirmUrl);
 	}
 }
