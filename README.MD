@@ -526,7 +526,7 @@ See common errors.
 
 ## Change log
 
-### v1.0.2
+### v1.1.0
 
 - Add confirm you email address functionality
 
