@@ -55,19 +55,19 @@ public class MailServiceTest {
 	}
 	
 	@Test
-	public void test_createUrl_leaves_intact(){
+	public void test_createTokenUrl_leaves_intact(){
 		URL url = ReflectionTestUtils.invokeMethod(mailService, "parseUrl", "https://stefan:weird@authomator.io:8443/t/./index.html?test=me#pageSection");
-		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createResetUrl", url, "testje");
+		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createTokenUrl", url, "my-token-test", "testje");
 		Assert.assertNotNull(createUrl);		
-		Assert.assertEquals(createUrl, "https://stefan:weird@authomator.io:8443/t/./index.html?test=me&reset-token=testje#pageSection");
+		Assert.assertEquals(createUrl, "https://stefan:weird@authomator.io:8443/t/./index.html?test=me&my-token-test=testje#pageSection");
 	}
 	
 	@Test
-	public void test_createUrl_works_with_empty_path(){
+	public void test_createTokenUrl_works_with_empty_path(){
 		URL url = ReflectionTestUtils.invokeMethod(mailService, "parseUrl", "https://authomator.io#test");
-		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createResetUrl", url, "tokendatadatatata");
+		String createUrl = ReflectionTestUtils.invokeMethod(mailService, "createTokenUrl", url, "perhaps-a-reset-token", "tokendatadatatata");
 		Assert.assertNotNull(createUrl);
-		Assert.assertEquals(createUrl, "https://authomator.io/?reset-token=tokendatadatatata#test");
+		Assert.assertEquals(createUrl, "https://authomator.io/?perhaps-a-reset-token=tokendatadatatata#test");
 	}
 	
 	
@@ -82,4 +82,19 @@ public class MailServiceTest {
 		
 		verify(mock, times(1)).sendForgotEmail("test@local.local", "https://authomator.io/?reset-token=test");
 	}		
+	
+	
+	@Test
+	public void test_send_confirm_calls_transport() throws Throwable {
+		
+		MailTransport mock = Mockito.mock(MailTransport.class);
+		when(mock.sendConfirmEmailEmail("test@local.local", "https://authomator.io/test")).thenReturn(true);
+		ReflectionTestUtils.setField(mailService, "transport", mock);
+		
+		mailService.sendConfirmEmailMail("test@local.local", "https://authomator.io/", "test");
+		
+		verify(mock, times(1)).sendForgotEmail("test@local.local", "https://authomator.io/?confirm-email-token=test");
+	}
+	
+	
 }
