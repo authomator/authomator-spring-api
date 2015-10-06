@@ -433,6 +433,52 @@ The submitted data is not valid.
 
 See common errors.
 
+### POST /send-confirm-email
+
+Send a confirm your email address mail.
+The confirmation token is sent through email and exposed in the url through the query parameter `confirm-email-token`.
+When requesting the confirmation it is ok to add other query parameters in the url, these will remain untouched.
+Please note that all restrictions that apply to reset tokens also apply to confirm email (httpsOnly, allowedDomains).
+
+
+#### Request
+
+##### Content-type
+
+`application/json`
+
+##### Parameters
+
+- `accessToken`: string, required, the sub from the access or identity token
+- `url`: string, required, link to specify in the email
+
+#### Response
+
+##### 204 No Content
+
+Email successfully confirmed.
+
+##### 403 Forbidden
+
+Possible reasons:
+
+- The requested url is not secure (NonSecureUrl)
+- The requested url is not allowed (UnauthorizedDomain)
+- Email confirmation is not enabled (EmailConfirmationNotEnabled)
+- Email confirmation was already performed (UserEmailConfirmedAlready)
+
+###### Body
+
+See common errors.
+
+##### 422 Unprocessable Entity
+
+The submitted data is not valid.
+
+###### Body
+
+See common errors.
+
 ## Change log
 
 ### v1.0.1

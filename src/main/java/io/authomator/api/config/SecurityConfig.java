@@ -28,6 +28,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 			.antMatchers(HttpMethod.POST, "/forgot-password").permitAll()
 			.antMatchers(HttpMethod.POST, "/reset-password").permitAll()
 			.antMatchers(HttpMethod.PUT, "/password").permitAll()
+			.antMatchers(HttpMethod.POST, "/send-confirm-email").permitAll()
 			.anyRequest().denyAll();
 	}
 	
