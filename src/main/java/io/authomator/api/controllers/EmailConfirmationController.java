@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.service.UserService;
+import io.authomator.api.dto.ConfirmEmailRequest;
 import io.authomator.api.dto.GenericError;
 import io.authomator.api.dto.SendConfirmEmailRequest;
 import io.authomator.api.dto.ValidationError;
@@ -45,76 +46,87 @@ public class EmailConfirmationController {
 
 	@Autowired
 	MailService mailService;
-	
-	private static Logger logger = Logger.getLogger(EmailConfirmationController.class);
-	
 
-	@RequestMapping(value="/send-confirm-email", method=RequestMethod.POST)
-	@ResponseStatus(value=HttpStatus.NO_CONTENT)
+	private static Logger logger = Logger.getLogger(EmailConfirmationController.class);
+
+	@RequestMapping(value = "/send-confirm-email", method = RequestMethod.POST)
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void sendConfirmEmail(@Valid @RequestBody SendConfirmEmailRequest req)
 			throws InvalidJwtException, MalformedURLException, NonSecureUrlException, UnauthorizedDomainException,
 			EmailTransportException, JoseException, MalformedClaimException, EmailConfirmationNotEnabledException,
 			UserNotFoundException, UserEmailConfirmedAlreadyException {
-		
+
 		JwtClaims claims = jwtService.validateAccessToken(req.getAccessToken());
 		User user = userService.getUserForEmailConfirmation(claims.getSubject());
 		JsonWebSignature confirmToken = jwtService.getConfirmEmailToken(user);
 		mailService.sendConfirmEmailMail(user.getEmail(), req.getUrl(), confirmToken.getCompactSerialization());
 	}
-	
-	
+
+	@RequestMapping("/confirm-email")
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
+	public void confirmEmail(@Valid @RequestBody ConfirmEmailRequest req)
+			throws InvalidJwtException, MalformedClaimException, UserNotFoundException,
+			EmailConfirmationNotEnabledException, UserEmailConfirmedAlreadyException {
+
+		JwtClaims claims = jwtService.validateConfirmEmailToken(req.getConfirmEmailToken());
+		userService.confirmEmail(claims.getSubject());
+	}
+
 	/*
 	 * Exception handling
-	 * ------------------------------------------------------------------------------------------
+	 * -------------------------------------------------------------------------
+	 * -----------------
 	 */
-	
+
 	private ValidationError createInvalidAccessTokenDto() {
 		ValidationError validationError = new ValidationError();
 		validationError.addFieldError("accessToken", "Invalid JWT access token", "CredentialsError");
 		return validationError;
 	}
-	
+
 	@ExceptionHandler(UserNotFoundException.class)
-	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
+	@ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
 	public ValidationError userNotFound(UserNotFoundException ex) {
 		logger.log(Level.WARN, String.format("Unknown user tried to send confirm email %s", ex.getEmail()));
 		return createInvalidAccessTokenDto();
 	}
-	
+
 	@ExceptionHandler(NonSecureUrlException.class)
-	@ResponseStatus(value=HttpStatus.FORBIDDEN)
-	public GenericError nonSecureUrl(NonSecureUrlException ex){
+	@ResponseStatus(value = HttpStatus.FORBIDDEN)
+	public GenericError nonSecureUrl(NonSecureUrlException ex) {
 		logger.log(Level.WARN, String.format("User tried to send confirm email to non secure url: %s", ex.getUrl()));
 		return new GenericError(new Exception("The requested url is not secure"), "NonSecureUrl");
 	}
-		
+
 	@ExceptionHandler(UnauthorizedDomainException.class)
-	@ResponseStatus(value=HttpStatus.FORBIDDEN)
-	public GenericError unauthorizedDomain(UnauthorizedDomainException ex){
-		logger.log(Level.WARN, String.format("User tried to send confirm email to unauthorized domain: %s", ex.getUrl()));
+	@ResponseStatus(value = HttpStatus.FORBIDDEN)
+	public GenericError unauthorizedDomain(UnauthorizedDomainException ex) {
+		logger.log(Level.WARN,
+				String.format("User tried to send confirm email to unauthorized domain: %s", ex.getUrl()));
 		return new GenericError(new Exception("The requested url is not allowed"), "UnauthorizedDomain");
 	}
-	
+
 	@ExceptionHandler(InvalidJwtException.class)
-	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
-	public ValidationError handleInvalidJwtException(InvalidJwtException ex){
+	@ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
+	public ValidationError handleInvalidJwtException(InvalidJwtException ex) {
 		logger.log(Level.ERROR, String.format("Access token is invalid for email confirmation: %s", ex.getMessage()));
 		return createInvalidAccessTokenDto();
 	}
-	
+
 	@ExceptionHandler(EmailConfirmationNotEnabledException.class)
-	@ResponseStatus(value=HttpStatus.FORBIDDEN)
-	public GenericError emailConfirmationNotEnabled(EmailConfirmationNotEnabledException ex){
-		logger.log(Level.WARN, String.format("User tried to send confirm email, but email confirmation is not enabled: %s", ex.getMessage()));
+	@ResponseStatus(value = HttpStatus.FORBIDDEN)
+	public GenericError emailConfirmationNotEnabled(EmailConfirmationNotEnabledException ex) {
+		logger.log(Level.WARN, String.format(
+				"User tried to send confirm email, but email confirmation is not enabled: %s", ex.getMessage()));
 		return new GenericError(new Exception("Email confirmation is not enabled"), "EmailConfirmationNotEnabled");
 	}
-	
+
 	@ExceptionHandler(UserEmailConfirmedAlreadyException.class)
-	@ResponseStatus(value=HttpStatus.FORBIDDEN)
-	public GenericError userEmailAlreadyConfirmed(UserEmailConfirmedAlreadyException ex){
-		logger.log(Level.WARN, String.format("User tried to send confirm email, but email confirmation was already ok: %s", ex.getMessage()));
+	@ResponseStatus(value = HttpStatus.FORBIDDEN)
+	public GenericError userEmailAlreadyConfirmed(UserEmailConfirmedAlreadyException ex) {
+		logger.log(Level.WARN, String.format(
+				"User tried to send confirm email, but email confirmation was already ok: %s", ex.getMessage()));
 		return new GenericError(new Exception("Email confirmation was already performed"), "UserEmailConfirmedAlready");
 	}
-	
-	
+
 }

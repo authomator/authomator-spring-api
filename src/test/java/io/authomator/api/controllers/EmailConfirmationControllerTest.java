@@ -2,6 +2,7 @@ package io.authomator.api.controllers;
 
 import static io.authomator.api.TestUtil.APPLICATION_JSON;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.startsWith;
 import static org.mockito.Mockito.times;
@@ -103,6 +104,14 @@ public class EmailConfirmationControllerTest {
 		ReflectionTestUtils.setField(userService, "verificationEmailEnabled", registrationStatus);
     }
     
+    
+    /*
+	  ___              _    ___           __ _                _   _            ___            _ _ 
+	 / __| ___ _ _  __| |  / __|___ _ _  / _(_)_ _ _ __  __ _| |_(_)___ _ _   | __|_ __  __ _(_) |
+	 \__ \/ -_) ' \/ _` | | (__/ _ \ ' \|  _| | '_| '  \/ _` |  _| / _ \ ' \  | _|| '  \/ _` | | |
+	 |___/\___|_||_\__,_|  \___\___/_||_|_| |_|_| |_|_|_\__,_|\__|_\___/_||_| |___|_|_|_\__,_|_|_|
+                                                                                              
+     */
     
     private Map<String,String> createSendConfirmRequest() throws JoseException{
     	JsonWebSignature accessToken = jwtService.getAccessToken(user);
@@ -266,6 +275,115 @@ public class EmailConfirmationControllerTest {
 	        .andExpect(jsonPath("$.code").value("HttpMessageNotReadable"));
     	
     	verify(mockTransport, times(0)).sendConfirmEmailEmail(null, null);
+    }
+    
+    
+    /*
+	   ___           __ _             ___            _ _ 
+	  / __|___ _ _  / _(_)_ _ _ __   | __|_ __  __ _(_) |
+	 | (__/ _ \ ' \|  _| | '_| '  \  | _|| '  \/ _` | | |
+	  \___\___/_||_|_| |_|_| |_|_|_| |___|_|_|_\__,_|_|_|
+                                                     
+     */
+    
+    @Test
+    public void confirmEmail() throws JsonProcessingException, Exception{
+    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("confirmEmailToken", jwtService.getConfirmEmailToken(user).getCompactSerialization());
+
+    	assertFalse(user.getEmailVerified());
+    	
+    	mockMvc
+			.perform(
+				post("/confirm-email")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+			.andDo(print())
+	        .andExpect(status().isNoContent());
+    	
+    	user = userRepository.findOne(user.getId());
+    	assertTrue(user.getEmailVerified());
+    }
+    
+    
+    @Test
+    public void confirmEmail_when_verification_is_disabled() throws JsonProcessingException, Exception{
+    	
+    	ReflectionTestUtils.setField(userService, "verificationEmailEnabled", false);
+    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("confirmEmailToken", jwtService.getConfirmEmailToken(user).getCompactSerialization());
+
+    	assertFalse(user.getEmailVerified());
+    	
+    	mockMvc
+			.perform(
+				post("/confirm-email")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+			.andDo(print())
+	        .andExpect(status().isForbidden())
+	        .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(jsonPath("$.message").value("Email confirmation is not enabled"))
+	        .andExpect(jsonPath("$.code").value("EmailConfirmationNotEnabled"));
+    	
+    	user = userRepository.findOne(user.getId());
+    	assertFalse(user.getEmailVerified());
+    }
+    
+    
+    @Test
+    public void confirmEmail_when_verification_is_already_done() throws JsonProcessingException, Exception{
+    	    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("confirmEmailToken", jwtService.getConfirmEmailToken(user).getCompactSerialization());
+    	
+    	user.setEmailVerified(true);
+    	user = userRepository.save(user);
+    	
+    	mockMvc
+			.perform(
+				post("/confirm-email")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+			.andDo(print())
+	        .andExpect(status().isForbidden())
+	        .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(jsonPath("$.message").value("Email confirmation was already performed"))
+	        .andExpect(jsonPath("$.code").value("UserEmailConfirmedAlready"));   	
+    }
+    
+    @Test
+    public void confirmEmail_when_user_is_deleted() throws JsonProcessingException, Exception{
+    	    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("confirmEmailToken", jwtService.getConfirmEmailToken(user).getCompactSerialization());
+    	
+    	userRepository.delete(user);
+    	
+    	mockMvc
+			.perform(
+				post("/confirm-email")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+			.andDo(print())
+	        .andExpect(status().isUnprocessableEntity())
+	        .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(jsonPath("$.message").value("Validation Failed"))
+	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
+	        .andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+	        .andExpect(jsonPath("$.fieldErrors[0].field").value("accessToken"))
+	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid JWT access token"))
+	        .andExpect(jsonPath("$.fieldErrors[0].code").value("CredentialsError"));
     }
     
 }

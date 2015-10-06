@@ -479,7 +479,56 @@ The submitted data is not valid.
 
 See common errors.
 
+
+### POST /confirm-email
+
+Confirm an email address using a confirm token. To send the confirm your email mail, use the /send-confirm-email endpoint.
+The confirmation token is sent through email and exposed in the url through the query parameter `confirm-email-token`.
+
+An example confirmation url could look like this:
+
+```
+http://myapp.authomator.io/path?my-q=someval&confirm-email-token=<token>
+```
+
+
+#### Request
+
+##### Content-type
+
+`application/json`
+
+##### Parameters
+
+- `confirmEmailToken`: string, required, confirmation token
+
+#### Response
+
+##### 204 No Content
+
+Email successfully confirmed.
+
+##### 403 Forbidden
+
+Possible reasons:
+
+- Email confirmation is not enabled (EmailConfirmationNotEnabled)
+- Email confirmation was already performed (UserEmailConfirmedAlready)
+
+##### 422 Unprocessable Entity
+
+The submitted data is not valid.
+
+###### Body
+
+See common errors.
+
+
 ## Change log
+
+### v1.0.2
+
+- Add confirm you email address functionality
 
 ### v1.0.1
 
