@@ -18,7 +18,7 @@ import com.microtripit.mandrillapp.lutung.view.MandrillMessageStatus;
 
 import io.authomator.api.exception.EmailTransportException;
 
-@ConditionalOnProperty(name="io.authomator.api.mandrill.key")
+@ConditionalOnProperty(name="io.authomator.api.mailtransport.mandrill.key")
 @Service("MailTransport")
 public class MailTranportMandrillTemplate implements MailTransport {
 	
