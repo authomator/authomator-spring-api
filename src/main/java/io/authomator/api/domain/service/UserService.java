@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
-import io.authomator.api.controllers.EmailConfirmationController;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.repository.UserRepository;
 import io.authomator.api.exception.EmailConfirmationNotEnabledException;
