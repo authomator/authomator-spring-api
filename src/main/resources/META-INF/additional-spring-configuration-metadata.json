@@ -1,0 +1,82 @@
+{"properties": [
+  {
+    "name": "io.authomator.api.secret",
+    "type": "java.lang.String",
+    "description": "This sets the secret used to sign the jwt tokens"
+  },
+  {
+    "name": "io.authomator.api.secretinternal",
+    "type": "java.lang.String",
+    "description": "This sets the secret used to sign the jwt tokens that authomator uses for refresh, and password resets. Make sure this is different than your normal jwt secret."
+  },
+  {
+    "name": "io.authomator.api.issuer",
+    "type": "java.lang.String",
+    "description": "Sets the iss field in the jwt token"
+  },
+  {
+    "name": "io.authomator.api.audience",
+    "type": "java.lang.String",
+    "description": "Sets the aud field in the jwt token accepts an array of values: eg: audience,audience2"
+  },
+  {
+    "name": "io.authomator.api.alg",
+    "type": "java.lang.String",
+    "description": "Sets the algorithm used to sign the jwt tokens, default value: HMAC_SHA512"
+  },
+  {
+    "name": "io.authomator.api.ttl",
+    "type": "java.lang.String",
+    "description": "Sets how long a regular token is valid in minutes, default value: 60"
+  },
+  {
+    "name": "io.authomator.api.ttlrefresh",
+    "type": "java.lang.String",
+    "description": "Sets how long the refresh token is valid in minutes, default value: 120"
+  },
+  {
+    "name": "io.authomator.api.ttlforgot",
+    "type": "java.lang.String",
+    "description": "Sets how long a forgot password token is valid in minutes, default value: 60"
+  },
+  {
+    "name": "io.authomator.api.registration.allow",
+    "type": "java.lang.String",
+    "description": "By default user registration is not allowed, so you would need to fill the user database with your own application, default value: false"
+  },
+  {
+    "name": "io.authomator.api.registration.default.roles",
+    "type": "java.lang.String",
+    "description": "This settings allows you to add global roles to users that register with the service. These roles are stored in the `roles` attribute of the jwt access token This accepts an array, eg: USER,GUEST . default=null"
+  },
+  {
+    "name": "io.authomator.api.verification.email.enabled",
+    "type": "java.lang.String",
+    "description": "This setting enables email verification functionality, by default it is enabled and allows sending email verification mails and verification requests. default=true"
+  },
+  {
+    "name": "io.authomator.api.mail.alloweddomains",
+    "type": "java.lang.String",
+    "description": "This limits the urls that are allowed to be specified in the API request to send a password reset and confirm email token. The token is appended to this url, and it is wise to limit this to you domains that will be processing the reset password requests. This property accepts an array of domains: eg authomator.io,www.authomator.io,app.authomator.io . Default value: authomator.io"
+  },
+  {
+    "name": "io.authomator.api.mail.httpsonly",
+    "type": "java.lang.String",
+    "description": "This setting limits sending urls with tokens for https only urls. Default value: true"
+  },
+  {
+    "name": "io.authomator.api.mailtransport.mandrill.key",
+    "type": "java.lang.String",
+    "description": "A description for 'io.authomator.api.mailtransport.mandrill.key'"
+  },
+  {
+    "name": "io.authomator.api.mailtransport.mandrill.template.forgotpassword",
+    "type": "java.lang.String",
+    "description": "A description for 'io.authomator.api.mailtransport.mandrill.template.forgotpassword'"
+  },
+  {
+    "name": "io.authomator.api.mailtransport.mandrill.template.confirmemail",
+    "type": "java.lang.String",
+    "description": "A description for 'io.authomator.api.mailtransport.mandrill.template.confirmemail'"
+  }
+]}

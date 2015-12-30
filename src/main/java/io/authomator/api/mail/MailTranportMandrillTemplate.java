@@ -32,9 +32,9 @@ public class MailTranportMandrillTemplate implements MailTransport {
 		
 	@Autowired
 	public MailTranportMandrillTemplate(
-			@Value("${io.authomator.api.mandrill.key}") String mandrillKey,
-			@Value("${io.authomator.api.mandrill.template.forgotpassword:forgot-password}") String mandrillForgotPasswordTemplate,
-			@Value("${io.authomator.api.mandrill.template.confirmemail:confirm-email}") String mandrillConfirmEmailTemplate ) {
+			@Value("${io.authomator.api.mailtransport.mandrill.key}") String mandrillKey,
+			@Value("${io.authomator.api.mailtransport.mandrill.template.forgotpassword:forgot-password}") String mandrillForgotPasswordTemplate,
+			@Value("${io.authomator.api.mailtransport.mandrill.template.confirmemail:confirm-email}") String mandrillConfirmEmailTemplate ) {
 		this.mandrillKey = mandrillKey;
 		this.mandrillForgotPasswordTemplate = mandrillForgotPasswordTemplate;
 		this.mandrillConfirmEmailTemplate = mandrillConfirmEmailTemplate;
