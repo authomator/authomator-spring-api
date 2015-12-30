@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.2.6.RELEASE</version>
+		<version>1.3.1.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 
@@ -49,7 +49,7 @@
 		<dependency>
 			<groupId>com.mandrillapp.wrapper.lutung</groupId>
 			<artifactId>lutung</artifactId>
-			<version>0.0.5</version>
+			<version>0.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jayway.jsonpath</groupId>
