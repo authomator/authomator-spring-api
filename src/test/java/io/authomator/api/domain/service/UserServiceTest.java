@@ -134,19 +134,7 @@ public class UserServiceTest {
 		assertTrue(user.getContexts().iterator().next().getName().equals("sometest@domain.tld"));
 	}
 	
-	@Test
-	public void signUpShouldNotCreateContextIfDisabled() throws Exception {
-		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
-		ReflectionTestUtils.setField(userService, "contextsEnabled", false);
 		
-		User user = userService.register("sometest@domain.tld", "test");
-		assertNotNull(user);
-		
-		assertNotNull(user.getContexts());
-		assertTrue(user.getContexts().isEmpty());
-	}
-	
-	
 	//--------------------------------------------------------------------------
 	//  .signIn()
 	//--------------------------------------------------------------------------
