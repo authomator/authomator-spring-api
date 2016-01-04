@@ -419,6 +419,20 @@ public class JwtServiceTest {
 	}
 	
 	@Test(expected=InvalidJwtException.class)
+	public void validateAccessToken_without_ctx_claim () throws Throwable {
+		JwtClaims access = createValidAccessClaims();
+		access.unsetClaim("ctx");
+		JsonWebSignature accessJwt = signClaims(access, defaultSecret);
+		try {
+			jwtService.validateAccessToken(accessJwt.getCompactSerialization());
+		}
+		catch (InvalidJwtException ex){
+			assertEquals("Access token is missing ctx claim", ex.getMessage());
+			throw ex;
+		}		
+	}
+	
+	@Test(expected=InvalidJwtException.class)
 	public void validateAccessTokenWithInvalidToken() throws Throwable {
 		JwtClaims access = createValidRefreshClaims();
 		JsonWebSignature accessJwt = signClaims(access, defaultInternalSecret);

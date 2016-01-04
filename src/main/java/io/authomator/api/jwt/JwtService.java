@@ -358,6 +358,12 @@ public class JwtService {
             .setJwsAlgorithmConstraints(AlgorithmConstraints.DISALLOW_NONE)
             .setVerificationKey(new HmacKey(secret.getBytes()))
             .build();
-		return jwtConsumer.process(jwt).getJwtClaims();
+		
+		JwtClaims claims = jwtConsumer.process(jwt).getJwtClaims();
+		if (!claims.hasClaim("ctx")){
+			throw new InvalidJwtException("Access token is missing ctx claim");
+		}
+		
+		return claims;
 	}
 }
