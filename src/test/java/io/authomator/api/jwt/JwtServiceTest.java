@@ -26,6 +26,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.Assert;
 
 import io.authomator.api.AuthomatorApiApplication;
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.dto.TokenReply;
 
@@ -108,13 +109,23 @@ public class JwtServiceTest {
 	//  JwtClaims
 	//--------------------------------------------------------------------------
 	
-	private User createTestUser(){
+	private User createTestUser() {
+		
+		
 		User user = new User();
 		user.setEmail("testuser@mydomain.tld");
 		user.setId("someid");
 		user.setRoles("USER");
 		user.setRoles("ADMIN");
 		return user;
+	}
+	
+	private Context createTestContext(User user){
+		Context ctx = new Context();
+		ctx.setId("somectxid");
+		ctx.setName(user.getEmail());
+		ctx.setOwner(user);
+		return ctx;
 	}
 	
 	
@@ -131,8 +142,9 @@ public class JwtServiceTest {
 	@Test
 	public void getUserClaims() throws MalformedClaimException {
 		User user = createTestUser();
+		Context ctx = createTestContext(user);
 		
-		Object claimsmaybe = ReflectionTestUtils.invokeMethod(jwtService, "getUserClaims", user);
+		Object claimsmaybe = ReflectionTestUtils.invokeMethod(jwtService, "getUserClaims", user, ctx);
 		Assert.isInstanceOf(JwtClaims.class, claimsmaybe);
 		JwtClaims claims = (JwtClaims) claimsmaybe;
 		
@@ -161,7 +173,8 @@ public class JwtServiceTest {
 		JwtConsumer cons = cb.build(); 
 		
 		JwtClaims claims = cons.process(jwt).getJwtClaims();
-		assertEquals("someid",claims.getSubject());		
+		assertEquals("someid",claims.getSubject());
+		assertEquals("somectxid",claims.getStringClaimValue("ctx"));
 		
 		return claims;
 	}
@@ -170,8 +183,9 @@ public class JwtServiceTest {
 	@Test
 	public void getAccessToken() throws JoseException, InvalidJwtException, MalformedClaimException {
 		User user = createTestUser();
+		Context ctx = createTestContext(user);
 		user.setEmailVerified(true);
-		String jwt = jwtService.getAccessToken(user).getCompactSerialization();
+		String jwt = jwtService.getAccessToken(user, ctx).getCompactSerialization();
 		testUserToken(jwt);
 		JwtClaims accessClaims = testUserToken(jwt);
 		assertNull(accessClaims.getClaimValue("email"));
@@ -182,7 +196,8 @@ public class JwtServiceTest {
 	@Test
 	public void getIdentityToken() throws JoseException, InvalidJwtException, MalformedClaimException {
 		User user = createTestUser();
-		String jwt = jwtService.getIdentityToken(user).getCompactSerialization();		
+		Context ctx = createTestContext(user);
+		String jwt = jwtService.getIdentityToken(user, ctx).getCompactSerialization();		
 		JwtClaims idClaims = testUserToken(jwt);
 		assertEquals(user.getEmail(), idClaims.getClaimValue("email"));
 		assertFalse((boolean)idClaims.getClaimValue("emailVerified"));
@@ -192,7 +207,8 @@ public class JwtServiceTest {
 	@Test
 	public void getRefreshToken() throws JoseException, InvalidJwtException, MalformedClaimException {
 		User user = createTestUser();
-		String jwt = jwtService.getRefreshToken(user).getCompactSerialization();		
+		Context ctx = createTestContext(user);
+		String jwt = jwtService.getRefreshToken(user, ctx).getCompactSerialization();		
 		JwtConsumerBuilder cb = new JwtConsumerBuilder();
 		cb.setVerificationKey(new HmacKey(defaultInternalSecret.getBytes()));
 		cb.setJwsAlgorithmConstraints(AlgorithmConstraints.DISALLOW_NONE);
@@ -248,7 +264,8 @@ public class JwtServiceTest {
 	@Test
 	public void createTokensForUser() throws JoseException, InvalidJwtException {
 		User user = createTestUser();
-		TokenReply tr = jwtService.createTokensForUser(user);
+		Context ctx = createTestContext(user);
+		TokenReply tr = jwtService.createTokensForUser(user, ctx);
 		assertNotNull(tr);
 		assertNotNull(tr.getAccessToken());
 		assertNotNull(tr.getIdentityToken());
@@ -279,6 +296,7 @@ public class JwtServiceTest {
 		refresh.setIssuedAtToNow();
 		refresh.setNotBeforeMinutesInThePast(1);
 		refresh.setSubject("useridRefres12");
+		refresh.setStringClaim("ctx", "userCtxRefres12");
 		return refresh;
 	}
 	
@@ -312,6 +330,7 @@ public class JwtServiceTest {
 		access.setIssuedAtToNow();
 		access.setNotBeforeMinutesInThePast(1);
 		access.setSubject("somevaliduserid");
+		access.setStringClaim("ctx", "somevalidCtxid");
 		return access;
 	}
 	
