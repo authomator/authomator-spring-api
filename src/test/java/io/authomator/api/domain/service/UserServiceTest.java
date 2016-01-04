@@ -22,7 +22,9 @@ import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.repository.ContextRepository;
 import io.authomator.api.domain.repository.UserRepository;
+import io.authomator.api.exception.InvalidContextException;
 import io.authomator.api.exception.InvalidCredentialsException;
+import io.authomator.api.exception.MissingDefaultContextException;
 import io.authomator.api.exception.RegistrationNotEnabledException;
 import io.authomator.api.exception.UserAlreadyExistsException;
 import io.authomator.api.exception.UserNotFoundException;
@@ -120,9 +122,8 @@ public class UserServiceTest {
 	}
 	
 	@Test
-	public void signUpShouldCreateContextIfEnabled() throws Exception {
+	public void signUpShouldCreateContext() throws Exception {
 		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
-		ReflectionTestUtils.setField(userService, "contextsEnabled", true);
 		
 		User user = userService.register("sometest@domain.tld", "test");
 		assertNotNull(user);
@@ -180,18 +181,18 @@ public class UserServiceTest {
 	//  .refresh()
 	//--------------------------------------------------------------------------
 	@Test
-	public void refreshReturnsAUser() throws UserAlreadyExistsException, RegistrationNotEnabledException, UserNotFoundException{
+	public void refreshReturnsAUser() throws UserAlreadyExistsException, RegistrationNotEnabledException, UserNotFoundException, InvalidContextException, MissingDefaultContextException{
 		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
 		User user = userService.register("sometest@domain.tld", "yeahright");
 		assertNotNull(user);
-		User refreshedUser = userService.refresh(user.getId());
+		User refreshedUser = userService.refresh(user.getId(), contextService.getDefaultContext(user).getId());
 		assertNotNull(refreshedUser);
 		assertEquals(user.getEmail(), refreshedUser.getEmail());
 	}
 	
 	@Test(expected=UserNotFoundException.class)
-	public void refreshThrowsUserNotFoundForUnknownUsers() throws UserNotFoundException{		
-		userService.refresh("nonexisting");
+	public void refreshThrowsUserNotFoundForUnknownUsers() throws UserNotFoundException, InvalidContextException{		
+		userService.refresh("nonexisting", "na");
 	}
 
 	
