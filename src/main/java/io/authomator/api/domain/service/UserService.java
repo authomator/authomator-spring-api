@@ -20,10 +20,10 @@ public interface UserService {
 	User forgotPassword(String email) throws UserNotFoundException;
 
 	User resetPassword(String id, String newPassword) throws UserNotFoundException;
-
-	User updatePassword(String id, String currentPassword, String newPassword)
-			throws UserNotFoundException, InvalidCredentialsException;
-
+	
+	User updatePassword(String userId, String contextId, String currentPassword, String newPassword)
+			throws UserNotFoundException, InvalidCredentialsException, InvalidContextException;
+	
 	User getUserForEmailConfirmation(String id)
 			throws EmailConfirmationNotEnabledException, UserNotFoundException, UserEmailConfirmedAlreadyException;
 

@@ -30,8 +30,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.authomator.api.AuthomatorApiApplication;
 import io.authomator.api.builders.UserBuilder;
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
+import io.authomator.api.domain.repository.ContextRepository;
 import io.authomator.api.domain.repository.UserRepository;
+import io.authomator.api.domain.service.ContextService;
 import io.authomator.api.domain.service.UserService;
 import io.authomator.api.jwt.JwtService;
 
@@ -55,11 +58,22 @@ public class UpdatePasswordControllerTest {
 	
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private ContextRepository contextRepository;
+	
+	@Autowired
+	private ContextService contextService;
+	
 		
 	@Autowired 
 	private JwtService jwtService;
 	
 	private MockMvc mockMvc;
+	
+	private User user;
+	
+	private Context ctx;
 	
 
     @Before
@@ -69,16 +83,21 @@ public class UpdatePasswordControllerTest {
                 .addFilters(filterChainProxy)
                 .build();
     	
-    	User user = new UserBuilder()
+    	user = new UserBuilder()
         		.withEmail(USER_EMAIL)
         		.withPassword(USER_PASSWORD)
         		.build();
-        userRepository.save(user);                
+        userRepository.save(user);
+        
+        ctx = contextService.createDefaultContext(user);
+        user.getContexts().add(ctx);
+        userRepository.save(user);
     }
     
     @After
 	public void cleanup(){
     	userRepository.deleteAll();
+    	contextRepository.deleteAll();
     }
     
     
@@ -86,11 +105,8 @@ public class UpdatePasswordControllerTest {
     public void testChangePasswordShouldChangePassword() throws Throwable {
     	
     	final String newPassword = "newPass";
-    	
-    	User user = userRepository.findByEmail(USER_EMAIL);
-    	Assert.notNull(user);
-    	
-    	JsonWebSignature token = jwtService.getAccessToken(user);
+    	    	
+    	JsonWebSignature token = jwtService.getAccessToken(user, ctx);
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("accessToken", token.getCompactSerialization());
@@ -117,12 +133,8 @@ public class UpdatePasswordControllerTest {
     
     @Test
     public void testChangePasswordShouldReturnUnprocessableIfNewPasswordIsMissing() throws Throwable {
-    	
-    	
-    	User user = userRepository.findByEmail(USER_EMAIL);
-    	Assert.notNull(user);
-    	
-    	JsonWebSignature token = jwtService.getAccessToken(user);
+    	    	
+    	JsonWebSignature token = jwtService.getAccessToken(user, ctx);
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("accessToken", token.getCompactSerialization());
@@ -156,10 +168,7 @@ public class UpdatePasswordControllerTest {
     @Test
     public void testChangePasswordShouldReturnUnprocessableIfNewPasswordIsTooShort() throws Throwable {
     	    	
-    	User user = userRepository.findByEmail(USER_EMAIL);
-    	Assert.notNull(user);
-    	
-    	JsonWebSignature token = jwtService.getAccessToken(user);
+    	JsonWebSignature token = jwtService.getAccessToken(user, ctx);
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("accessToken", token.getCompactSerialization());
@@ -196,10 +205,7 @@ public class UpdatePasswordControllerTest {
     	
     	final String newPassword = "newPass";
     	
-    	User user = userRepository.findByEmail(USER_EMAIL);
-    	Assert.notNull(user);
-    	
-    	JsonWebSignature token = jwtService.getAccessToken(user);
+    	JsonWebSignature token = jwtService.getAccessToken(user, ctx);
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("accessToken", token.getCompactSerialization());
@@ -231,14 +237,11 @@ public class UpdatePasswordControllerTest {
     }
 	
     @Test
-    public void testChangePasswordShouldNotChangePasswordIUserWasRemoved() throws Throwable {
+    public void testChangePasswordShouldNotChangePasswordIfUserWasRemoved() throws Throwable {
     	
     	final String newPassword = "newPass";
-    	
-    	User user = userRepository.findByEmail(USER_EMAIL);
-    	Assert.notNull(user);
-    	
-    	JsonWebSignature token = jwtService.getAccessToken(user);
+    	    	
+    	JsonWebSignature token = jwtService.getAccessToken(user, ctx);
     	
     	Map<String, String> req = new HashMap<>();
     	req.put("accessToken", token.getCompactSerialization());
@@ -265,6 +268,43 @@ public class UpdatePasswordControllerTest {
 			.andExpect(jsonPath("$.fieldErrors[0].field").value("password"))
 	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid credentials"))
 	        .andExpect(jsonPath("$.fieldErrors[0].code").value("CredentialsError"));
+    	
+    }
+    
+    
+    @Test
+    public void testChangePasswordShouldNotChangePasswordIfUserHasNoContext() throws Throwable {
+    	
+    	final String newPassword = "newPass";
+    	    	
+    	JsonWebSignature token = jwtService.getAccessToken(user, ctx);
+    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("accessToken", token.getCompactSerialization());
+    	req.put("oldPassword", USER_PASSWORD);
+    	req.put("newPassword", newPassword);
+    	
+    	user.getContexts().clear();
+    	userRepository.save(user);
+    	    	
+    	mockMvc
+    		.perform(
+				put("/password")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(content().contentType(APPLICATION_JSON))
+	        .andExpect(jsonPath("$.message").value("Validation Failed"))
+	        .andExpect(jsonPath("$.code").value("ValidationFailed"))
+			.andExpect(jsonPath("$.fieldErrors").isArray())
+			.andExpect(jsonPath("$.fieldErrors", hasSize(1)))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("accessToken"))
+	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid jwt token"))
+	        .andExpect(jsonPath("$.fieldErrors[0].code").value("InvalidTokenCtxNA"));
     	
     }
     

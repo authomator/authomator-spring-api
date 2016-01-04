@@ -17,11 +17,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
+import io.authomator.api.domain.service.ContextService;
 import io.authomator.api.domain.service.UserService;
 import io.authomator.api.dto.UpdatePasswordRequest;
 import io.authomator.api.dto.TokenReply;
 import io.authomator.api.dto.ValidationError;
+import io.authomator.api.exception.ContextNotFoundException;
+import io.authomator.api.exception.InvalidContextException;
 import io.authomator.api.exception.InvalidCredentialsException;
 import io.authomator.api.exception.UserNotFoundException;
 import io.authomator.api.jwt.JwtService;
@@ -31,6 +35,9 @@ public class UpdatePasswordController {
 
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	ContextService contextService;
 	
 	@Autowired
 	JwtService jwtService;
@@ -45,11 +52,12 @@ public class UpdatePasswordController {
 	@RequestMapping(value="/password", method=RequestMethod.PUT)
 	public TokenReply changePassword(@Valid @RequestBody UpdatePasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
 																							UserNotFoundException, InvalidCredentialsException, 
-																							JoseException {
+																							JoseException, ContextNotFoundException, InvalidContextException {
 		
 		JwtClaims claims = jwtService.validateAccessToken(req.getAccessToken());
-		User user = userService.updatePassword(claims.getSubject(), req.getOldPassword(), req.getNewPassword());
-		return jwtService.createTokensForUser(user);
+		Context ctx = contextService.findOne(claims.getStringClaimValue("ctx"));
+		User user = userService.updatePassword(claims.getSubject(), ctx.getId(), req.getOldPassword(), req.getNewPassword());
+		return jwtService.createTokensForUser(user, ctx);
 	}
 	
 		
@@ -88,4 +96,21 @@ public class UpdatePasswordController {
 		return validationError;
 	}
 	
+	@ExceptionHandler(ContextNotFoundException.class)
+	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
+	public ValidationError handleContextNotFoundException(ContextNotFoundException ex){
+		logger.log(Level.ERROR, String.format("Access token is invalid for password update, context was not found: ", ex.getMessage()));
+		ValidationError validationError = new ValidationError();
+		validationError.addFieldError("accessToken", "Invalid jwt token", "InvalidTokenCtxNF");
+		return validationError;
+	}
+	
+	@ExceptionHandler(InvalidContextException.class)
+	@ResponseStatus(value=HttpStatus.UNPROCESSABLE_ENTITY)
+	public ValidationError handleInvalidContextException(InvalidContextException ex){
+		logger.log(Level.ERROR, String.format("Access token is invalid for password update, context was not found or user has no access to the context: ", ex.getMessage()));
+		ValidationError validationError = new ValidationError();
+		validationError.addFieldError("accessToken", "Invalid jwt token", "InvalidTokenCtxNA");
+		return validationError;
+	}
 }

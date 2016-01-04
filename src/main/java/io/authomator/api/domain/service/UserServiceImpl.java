@@ -166,20 +166,26 @@ public class UserServiceImpl implements UserService {
 	/**
 	 * Update password for a user by checking his current password before changing it
 	 * 
-	 * @param id
+	 * @param userId
+	 * @param contextId
 	 * @param currentPassword
 	 * @param newPassword
 	 * @return
 	 * @throws UserNotFoundException
 	 * @throws InvalidCredentialsException
+	 * @throws InvalidContextException 
 	 */
 	@Override
-	public User updatePassword(final String id, final String currentPassword, final String newPassword) throws UserNotFoundException, InvalidCredentialsException{
+	public User updatePassword(final String userId, final String contextId, final String currentPassword, final String newPassword) throws UserNotFoundException, InvalidCredentialsException, InvalidContextException{
 		
-		User user = userRepository.findOne(id);
+		User user = userRepository.findOne(userId);
 		
 		if (user == null) {
-			throw new UserNotFoundException("mongoId: " + id);
+			throw new UserNotFoundException("mongoId: " + userId);
+		}
+		
+		if (!contextService.hasContext(user, contextId)){
+			throw new InvalidContextException("User does not have access to the specified context or context not found");
 		}
 		
 		if ( ! BCrypt.checkpw(currentPassword, user.getPassword())){
