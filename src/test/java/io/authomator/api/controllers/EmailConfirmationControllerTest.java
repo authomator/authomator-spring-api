@@ -39,8 +39,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.authomator.api.AuthomatorApiApplication;
 import io.authomator.api.builders.UserBuilder;
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
+import io.authomator.api.domain.repository.ContextRepository;
 import io.authomator.api.domain.repository.UserRepository;
+import io.authomator.api.domain.service.ContextService;
 import io.authomator.api.domain.service.UserService;
 import io.authomator.api.jwt.JwtService;
 import io.authomator.api.mail.MailService;
@@ -62,9 +65,15 @@ public class EmailConfirmationControllerTest {
 
 	@Autowired
 	private UserRepository userRepository;
-	
+		
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private ContextRepository contextRepository;
+	
+	@Autowired
+	private ContextService contextService;
 	
 	@Autowired
 	private JwtService jwtService;
@@ -81,6 +90,8 @@ public class EmailConfirmationControllerTest {
     
     private User user;
     
+    private Context ctx;
+    
     @Before
     public void setup() {
     	mockMvc = MockMvcBuilders
@@ -94,6 +105,10 @@ public class EmailConfirmationControllerTest {
         		.build();
         userRepository.save(user);
         
+        ctx = contextService.createDefaultContext(user);
+        user.getContexts().add(ctx);
+        userRepository.save(user);
+                
         mockTransport = Mockito.mock(MailTransport.class);
         ReflectionTestUtils.setField(mailService, "transport", mockTransport);
     }
@@ -114,7 +129,7 @@ public class EmailConfirmationControllerTest {
      */
     
     private Map<String,String> createSendConfirmRequest() throws JoseException{
-    	JsonWebSignature accessToken = jwtService.getAccessToken(user);
+    	JsonWebSignature accessToken = jwtService.getAccessToken(user, ctx);
     	Map<String, String> req = new HashMap<>();
     	req.put("url", "https://authomator.io/confirm/email");
     	req.put("accessToken", accessToken.getCompactSerialization());
@@ -385,5 +400,5 @@ public class EmailConfirmationControllerTest {
 	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid JWT access token"))
 	        .andExpect(jsonPath("$.fieldErrors[0].code").value("CredentialsError"));
     }
-    
+        
 }
