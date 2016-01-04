@@ -309,7 +309,11 @@ public class JwtService {
 	 * @throws InvalidJwtException
 	 */
 	public JwtClaims validateRefreshToken(String jwt) throws InvalidJwtException {
-		return validateInternalToken(jwt, REFRESH_TOKEN_SUFFIX);
+		JwtClaims claims = validateInternalToken(jwt, REFRESH_TOKEN_SUFFIX);
+		if (!claims.hasClaim("ctx")){
+			throw new InvalidJwtException("Refresh token is missing ctx claim");
+		}
+		return claims;
 	}
 	
 	
