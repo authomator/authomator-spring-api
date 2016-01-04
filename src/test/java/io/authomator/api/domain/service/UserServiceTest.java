@@ -127,11 +127,10 @@ public class UserServiceTest {
 		User user = userService.register("sometest@domain.tld", "test");
 		assertNotNull(user);
 		
-		Set<Context> contexts = contextService.findByUser(user);
-		assertNotNull(contexts);
-		assertFalse(contexts.isEmpty());
-		assertTrue(contexts.size() == 1);
-		assertTrue(contexts.iterator().next().getName().equals("sometest@domain.tld"));
+		assertNotNull(user.getContexts());
+		assertFalse(user.getContexts().isEmpty());
+		assertTrue(user.getContexts().size() == 1);
+		assertTrue(user.getContexts().iterator().next().getName().equals("sometest@domain.tld"));
 	}
 	
 	@Test
@@ -142,9 +141,8 @@ public class UserServiceTest {
 		User user = userService.register("sometest@domain.tld", "test");
 		assertNotNull(user);
 		
-		Set<Context> contexts = contextService.findByUser(user);
-		assertNotNull(contexts);
-		assertTrue(contexts.isEmpty());
+		assertNotNull(user.getContexts());
+		assertTrue(user.getContexts().isEmpty());
 	}
 	
 	

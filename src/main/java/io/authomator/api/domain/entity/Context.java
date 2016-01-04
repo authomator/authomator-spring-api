@@ -1,10 +1,8 @@
 package io.authomator.api.domain.entity;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -21,9 +19,7 @@ public class Context {
 	
 	@DBRef
 	private User owner;
-	
-	private Set<ObjectId> users = new HashSet<>();
-	
+		
 	private HashMap<String, Set<String>> userRoles = new HashMap<>();
 
 	public String getId() {
@@ -48,14 +44,6 @@ public class Context {
 
 	public void setOwner(User owner) {
 		this.owner = owner;
-	}
-
-	public Set<ObjectId> getUsers() {
-		return users;
-	}
-
-	public void setUsers(Set<ObjectId> users) {
-		this.users = users;
 	}
 
 	public HashMap<String, Set<String>> getUserRoles() {

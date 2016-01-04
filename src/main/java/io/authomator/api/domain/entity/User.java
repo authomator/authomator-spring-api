@@ -1,11 +1,14 @@
 package io.authomator.api.domain.entity;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
@@ -26,6 +29,9 @@ public class User {
 	
 	private List<String> roles;			// User roles
 
+	@DBRef
+	private Set<Context> contexts = new LinkedHashSet<>();
+	
 	public String getId() {
 		return id;
 	}
@@ -77,5 +83,12 @@ public class User {
 			roles.add(role);
 		}
 	}
-	
+
+	public Set<Context> getContexts() {
+		return contexts;
+	}
+
+	public void setContexts(Set<Context> contexts) {
+		this.contexts = contexts;
+	}		
 }

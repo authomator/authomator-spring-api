@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.repository.UserRepository;
 import io.authomator.api.exception.EmailConfirmationNotEnabledException;
@@ -25,10 +26,7 @@ public class UserServiceImpl implements UserService {
 	
 	@Value("${io.authomator.api.verification.email.enabled:true}")
 	private boolean verificationEmailEnabled = false;
-	
-	@Value("${io.authomator.api.contexts.enabled:false}")
-	private boolean contextsEnabled = false;
-		
+			
 	
 	@Autowired
 	private UserRepository userRepository;
@@ -66,9 +64,9 @@ public class UserServiceImpl implements UserService {
 		}
 		userRepository.save(user);
 		
-		if (contextsEnabled) {
-			contextService.createContext(user, user.getEmail());
-		}
+		Context context = contextService.createContext(user, user.getEmail());
+		user.getContexts().add(context);
+		userRepository.save(user);
 		
 		return user;
 	}
