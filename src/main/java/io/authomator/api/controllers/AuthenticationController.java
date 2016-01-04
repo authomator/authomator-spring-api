@@ -14,13 +14,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
+import io.authomator.api.domain.service.ContextService;
 import io.authomator.api.domain.service.UserService;
 import io.authomator.api.dto.GenericError;
 import io.authomator.api.dto.LoginRequest;
 import io.authomator.api.dto.TokenReply;
 import io.authomator.api.dto.ValidationError;
 import io.authomator.api.exception.InvalidCredentialsException;
+import io.authomator.api.exception.MissingDefaultContextException;
 import io.authomator.api.exception.RegistrationNotEnabledException;
 import io.authomator.api.exception.UserAlreadyExistsException;
 import io.authomator.api.exception.UserNotFoundException;
@@ -33,6 +36,9 @@ public class AuthenticationController {
 	UserService userService;
 	
 	@Autowired
+	ContextService contextService;
+	
+	@Autowired
 	JwtService jwtService;
 	
 	private static final Logger logger = Logger.getLogger(AuthenticationController.class);
@@ -43,15 +49,17 @@ public class AuthenticationController {
 	 */
 	
 	@RequestMapping(value="/sign-in", method=RequestMethod.POST)
-	public TokenReply login(@Valid @RequestBody LoginRequest loginRequest) throws JoseException, UserNotFoundException, InvalidCredentialsException {		
+	public TokenReply login(@Valid @RequestBody LoginRequest loginRequest) throws JoseException, UserNotFoundException, InvalidCredentialsException, MissingDefaultContextException {		
 		User user = userService.signIn(loginRequest.getEmail(), loginRequest.getPassword());
-		return jwtService.createTokensForUser(user);
+		Context ctx = contextService.getDefaultContext(user);
+		return jwtService.createTokensForUser(user, ctx);
 	}
 	
 	@RequestMapping(value="/register", method=RequestMethod.POST)
-	public TokenReply signup(@Valid @RequestBody LoginRequest loginRequest) throws JoseException, UserAlreadyExistsException, RegistrationNotEnabledException {		
+	public TokenReply signup(@Valid @RequestBody LoginRequest loginRequest) throws JoseException, UserAlreadyExistsException, RegistrationNotEnabledException, MissingDefaultContextException {		
 		User user = userService.register(loginRequest.getEmail(), loginRequest.getPassword());
-		return jwtService.createTokensForUser(user);
+		Context ctx = contextService.getDefaultContext(user);
+		return jwtService.createTokensForUser(user, ctx);
 	}
 	
 	
@@ -95,4 +103,12 @@ public class AuthenticationController {
 		logger.log(Level.WARN, String.format("A register request was received, but registrations are disabled"));		
 		return new GenericError(new Exception("Registration is not allowed"), "RegistrationDisabled");
 	}
+	
+	@ExceptionHandler(MissingDefaultContextException.class)
+	@ResponseStatus(value=HttpStatus.FAILED_DEPENDENCY)
+	public GenericError missingDefaultCtx(MissingDefaultContextException ex){
+		logger.log(Level.WARN, String.format("A user tried to login but has no default context"));
+		return new GenericError(new Exception("User has no context"), "MissingDefaultContext");
+	}
+	
 }
