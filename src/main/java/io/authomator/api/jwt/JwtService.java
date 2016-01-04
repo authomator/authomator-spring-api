@@ -3,6 +3,7 @@ package io.authomator.api.jwt;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jws.AlgorithmIdentifiers;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.dto.TokenReply;
 
@@ -124,12 +126,12 @@ public class JwtService {
 	}
 
 	/**
-	 * Create a user claims suitable for access token (only sub/roles)
+	 * Create a user claims suitable for access token (only sub/roles/context)
 	 * 
 	 * @param user
 	 * @return JwtClaims
 	 */
-	private JwtClaims getUserClaims(User user) {
+	private JwtClaims getUserClaims(User user, Context context) {
 		JwtClaims claims = new JwtClaims();
 		claims.setIssuer(issuer);
 		claims.setAudience(audience);
@@ -138,6 +140,7 @@ public class JwtService {
 		claims.setNotBeforeMinutesInThePast(1);
 		claims.setSubject(user.getId());
 		claims.setStringListClaim("roles", user.getRoles());
+		claims.setStringClaim("ctx", context.getId());
 		return claims;
 	}
 
@@ -199,8 +202,8 @@ public class JwtService {
 	 * @param user
 	 * @return JsonWebSignature
 	 */
-	public JsonWebSignature getAccessToken(User user) {
-		JwtClaims claims = getUserClaims(user);
+	public JsonWebSignature getAccessToken(User user, Context context) {
+		JwtClaims claims = getUserClaims(user, context);
 		claims.setClaim("ev", user.getEmailVerified());
 		return signUserClaims(claims);
 	}
@@ -217,10 +220,11 @@ public class JwtService {
 	 * @param user
 	 * @return JsonWebSignature
 	 */
-	public JsonWebSignature getIdentityToken(User user) {
-		JwtClaims claims = getUserClaims(user);
+	public JsonWebSignature getIdentityToken(User user, Context context) {
+		JwtClaims claims = getUserClaims(user, context);
 		claims.setClaim("email", user.getEmail());
 		claims.setClaim("emailVerified", user.getEmailVerified());
+		claims.setClaim("contexts", user.getContexts().stream().map( c -> c.getId()).collect(Collectors.toList())); //TODO: should use mapper
 		return signUserClaims(claims);
 	}
 
@@ -234,8 +238,10 @@ public class JwtService {
 	 * @param user
 	 * @return JsonWebSignature
 	 */
-	public JsonWebSignature getRefreshToken(User user) {
-		return signInternalClaims(getInternalClaims(user, REFRESH_TOKEN_SUFFIX, ttlRefresh));
+	public JsonWebSignature getRefreshToken(User user, Context context) {
+		JwtClaims claims = getInternalClaims(user, REFRESH_TOKEN_SUFFIX, ttlRefresh);
+		claims.setStringClaim("ctx", context.getId());
+		return signInternalClaims(claims);
 	}
 
 	/**
@@ -265,11 +271,11 @@ public class JwtService {
 	 * @return
 	 * @throws JoseException
 	 */
-	public TokenReply createTokensForUser(User user) throws JoseException{		
+	public TokenReply createTokensForUser(User user, Context context) throws JoseException{		
 		TokenReply reply = new TokenReply();		
-		reply.setAccessToken(getAccessToken(user).getCompactSerialization());
-		reply.setIdentityToken(getIdentityToken(user).getCompactSerialization());
-		reply.setRefreshToken(getRefreshToken(user).getCompactSerialization());
+		reply.setAccessToken(getAccessToken(user, context).getCompactSerialization());
+		reply.setIdentityToken(getIdentityToken(user, context).getCompactSerialization());
+		reply.setRefreshToken(getRefreshToken(user, context).getCompactSerialization());
 		return reply;
 	}
 	
@@ -350,5 +356,4 @@ public class JwtService {
             .build();
 		return jwtConsumer.process(jwt).getJwtClaims();
 	}
-
 }
