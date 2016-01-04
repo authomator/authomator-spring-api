@@ -26,8 +26,15 @@ public class UserServiceImpl implements UserService {
 	@Value("${io.authomator.api.verification.email.enabled:true}")
 	private boolean verificationEmailEnabled = false;
 	
+	@Value("${io.authomator.api.contexts.enabled:false}")
+	private boolean contextsEnabled = false;
+		
+	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private ContextService contextService;
 	
 	
 	/**
@@ -53,13 +60,17 @@ public class UserServiceImpl implements UserService {
 		
 		User user = new User();
 		user.setEmail(email);
-		user.setPassword(password);
-		
+		user.setPassword(password);		
 		for(String role: defaultRoles) {
 			user.setRoles(role);
 		}
+		userRepository.save(user);
 		
-		return userRepository.save(user);
+		if (contextsEnabled) {
+			contextService.createContext(user, user.getEmail());
+		}
+		
+		return user;
 	}
 	
 	

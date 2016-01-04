@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Set;
+
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +18,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.authomator.api.AuthomatorApiApplication;
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
+import io.authomator.api.domain.repository.ContextRepository;
 import io.authomator.api.domain.repository.UserRepository;
 import io.authomator.api.exception.InvalidCredentialsException;
 import io.authomator.api.exception.RegistrationNotEnabledException;
@@ -32,7 +36,13 @@ public class UserServiceTest {
 	private UserRepository userRepository;
 	
 	@Autowired
+	private ContextRepository contextRepository;
+	
+	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private ContextService contextService;
 	
 	@Value("${io.authomator.api.registration.allow:false}")
 	private boolean registrationStatus;
@@ -46,6 +56,7 @@ public class UserServiceTest {
 		ReflectionTestUtils.setField(userService, "registrationEnabled", registrationStatus);
 		ReflectionTestUtils.setField(userService, "defaultRoles", defaultRoles);
 		userRepository.deleteAll();
+		contextRepository.deleteAll();
 	}
 	
 	//--------------------------------------------------------------------------
@@ -95,6 +106,7 @@ public class UserServiceTest {
 		userService.register("sometest@domain.tld", "test");
 	}
 	
+	
 	@Test(expected=UserAlreadyExistsException.class)
 	public void signUpShouldNotCreateDuplicateUsers() throws UserAlreadyExistsException, RegistrationNotEnabledException{
 		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
@@ -106,6 +118,35 @@ public class UserServiceTest {
 		
 		userService.register("sometest@domain.tld", "someotherpass");		
 	}
+	
+	@Test
+	public void signUpShouldCreateContextIfEnabled() throws Exception {
+		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
+		ReflectionTestUtils.setField(userService, "contextsEnabled", true);
+		
+		User user = userService.register("sometest@domain.tld", "test");
+		assertNotNull(user);
+		
+		Set<Context> contexts = contextService.findByUser(user);
+		assertNotNull(contexts);
+		assertFalse(contexts.isEmpty());
+		assertTrue(contexts.size() == 1);
+		assertTrue(contexts.iterator().next().getName().equals("sometest@domain.tld"));
+	}
+	
+	@Test
+	public void signUpShouldNotCreateContextIfDisabled() throws Exception {
+		ReflectionTestUtils.setField(userService, "registrationEnabled", true);
+		ReflectionTestUtils.setField(userService, "contextsEnabled", false);
+		
+		User user = userService.register("sometest@domain.tld", "test");
+		assertNotNull(user);
+		
+		Set<Context> contexts = contextService.findByUser(user);
+		assertNotNull(contexts);
+		assertTrue(contexts.isEmpty());
+	}
+	
 	
 	//--------------------------------------------------------------------------
 	//  .signIn()
