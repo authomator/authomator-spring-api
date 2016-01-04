@@ -28,8 +28,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.authomator.api.AuthomatorApiApplication;
 import io.authomator.api.builders.UserBuilder;
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
+import io.authomator.api.domain.repository.ContextRepository;
 import io.authomator.api.domain.repository.UserRepository;
+import io.authomator.api.domain.service.ContextService;
 import io.authomator.api.dto.TokenReply;
 import io.authomator.api.jwt.JwtService;
 
@@ -50,6 +53,12 @@ public class RefreshTokensControllerTest {
 
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private ContextRepository contextRepository;
+	
+	@Autowired
+	private ContextService contextService;
 		
 	@Autowired
 	private JwtService jwtService;
@@ -57,6 +66,8 @@ public class RefreshTokensControllerTest {
     private MockMvc mockMvc;
     
     private User user;
+    
+    private Context ctx;
 
     @Before
     public void setup() {
@@ -72,17 +83,23 @@ public class RefreshTokensControllerTest {
         		.withRoles(USER_ROLES)
         		.build();
         user = userRepository.save(u);
+        
+        ctx = contextService.createDefaultContext(user);
+        user.getContexts().add(ctx);
+        userRepository.save(user);
+        
     }
     
     @After
     public void cleanup() {
     	userRepository.deleteAll();
+    	contextRepository.deleteAll();
     }
     
     @Test
     public void refresh_with_valid_token() throws Exception {
     	    	
-    	TokenReply tokens = jwtService.createTokensForUser(user);
+    	TokenReply tokens = jwtService.createTokensForUser(user, ctx);
     	
     	HashMap<String, String> req = new HashMap<>();
     	req.put("refreshToken", tokens.getRefreshToken());
@@ -118,8 +135,53 @@ public class RefreshTokensControllerTest {
     @Test
     public void refresh_with_valid_token_but_nonexisting_user() throws Exception {
     	    	
-    	TokenReply tokens = jwtService.createTokensForUser(user);
+    	TokenReply tokens = jwtService.createTokensForUser(user, ctx);
     	userRepository.delete(user);
+    	
+    	HashMap<String, String> req = new HashMap<>();
+    	req.put("refreshToken", tokens.getRefreshToken());
+    	
+    	expectGenericValidationError(
+			mockMvc
+        		.perform(
+    				post("/refresh-tokens")
+    				.accept(APPLICATION_JSON)
+    				.contentType(APPLICATION_JSON)
+    				.content(new ObjectMapper().writeValueAsString(req))
+    			)
+        		.andDo(print())
+		);    	
+    }
+    
+    
+    @Test
+    public void refresh_with_valid_token_but_nonexisting_context() throws Exception {
+    	    	
+    	TokenReply tokens = jwtService.createTokensForUser(user, ctx);
+    	contextRepository.delete(ctx);
+    	
+    	HashMap<String, String> req = new HashMap<>();
+    	req.put("refreshToken", tokens.getRefreshToken());
+    	
+    	expectGenericValidationError(
+			mockMvc
+        		.perform(
+    				post("/refresh-tokens")
+    				.accept(APPLICATION_JSON)
+    				.contentType(APPLICATION_JSON)
+    				.content(new ObjectMapper().writeValueAsString(req))
+    			)
+        		.andDo(print())
+		);    	
+    }
+    
+    
+    @Test
+    public void refresh_with_valid_token_but_without_access_to_context() throws Exception {
+    	    	
+    	TokenReply tokens = jwtService.createTokensForUser(user, ctx);
+    	user.getContexts().remove(ctx);
+    	userRepository.save(user);
     	
     	HashMap<String, String> req = new HashMap<>();
     	req.put("refreshToken", tokens.getRefreshToken());
@@ -172,6 +234,4 @@ public class RefreshTokensControllerTest {
 				.andDo(print())
 		);
     }
-    
-
 }
