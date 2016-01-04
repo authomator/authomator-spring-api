@@ -347,6 +347,22 @@ public class JwtServiceTest {
 	}
 	
 	@Test(expected=InvalidJwtException.class)
+	public void validateRefreshTokenShouldCheckIfCtxClaimIsPresent() throws InvalidJwtException, JoseException {
+		
+		JwtClaims refresh = createValidRefreshClaims();
+		refresh.unsetClaim("ctx");
+		JsonWebSignature refreshJwt = signClaims(refresh, defaultInternalSecret);
+		
+		try {
+			jwtService.validateRefreshToken(refreshJwt.getCompactSerialization());
+		}
+		catch(InvalidJwtException ex) {
+			assertEquals("Refresh token is missing ctx claim", ex.getMessage());
+			throw ex;
+		}
+	}
+	
+	@Test(expected=InvalidJwtException.class)
 	public void validateRefreshTokenShouldNotAcceptForgotToken() throws InvalidJwtException, JoseException {
 		
 		JwtClaims refresh = createValidForgotClaims();		
