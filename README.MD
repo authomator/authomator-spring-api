@@ -67,6 +67,7 @@ Contains all information that Authomator knows about the user.
     "nbf":1441713594,
     "sub":"5575e89dd9ebb6c28fa5b358",
     "roles":["USER","ADMIN"],
+    "contexts": ["5575e89dd9ebb6c28fa5d113"]
     "email":"testuser@mydomain.tld",
     "emailVerified": false
 }
@@ -85,6 +86,7 @@ Contains only `sub` and `roles`. Due to its small size, it is recommended to use
     "nbf":1441713594,
     "sub":"5575e89dd9ebb6c28fa5b358",
     "roles":["USER","ADMIN"],
+    "ctx": "5575e89dd9ebb6c28fa5d113",
     "ev" : false
 }
 ```
@@ -98,7 +100,8 @@ Contains only `sub` and `roles`. Due to its small size, it is recommended to use
     "exp":1441721022,
     "iat":1441713822,
     "nbf":1441713762,
-    "sub":"5575e89dd9ebb6c28fa5b358"
+    "sub":"5575e89dd9ebb6c28fa5b358",
+    "ctx": "5575e89dd9ebb6c28fa5d113"
 }
 ```
 
@@ -525,6 +528,10 @@ See common errors.
 
 
 ## Change log
+
+### v2.0.0
+
+- Add context functionality
 
 ### v1.1.0
 
