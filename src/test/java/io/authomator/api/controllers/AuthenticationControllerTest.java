@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.HashMap;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,8 +33,10 @@ import io.authomator.api.AuthomatorApiApplication;
 import static io.authomator.api.TestUtil.APPLICATION_JSON;
 import io.authomator.api.builders.LoginRequestBuilder;
 import io.authomator.api.builders.UserBuilder;
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.repository.UserRepository;
+import io.authomator.api.domain.service.ContextService;
 import io.authomator.api.domain.service.UserService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -59,6 +62,9 @@ public class AuthenticationControllerTest {
 	@Autowired
 	private UserService userService;
 	
+	@Autowired
+	private ContextService contextService;
+	
 	@Value("${io.authomator.api.registration.allow:false}")
 	private boolean registrationStatus;
 	
@@ -79,7 +85,11 @@ public class AuthenticationControllerTest {
         		.withRoles(USER_ROLES)
         		.build();
         userRepository.save(user);
-                
+        
+        Context ctx = contextService.createDefaultContext(user);
+        user.getContexts().add(ctx);
+        userRepository.save(user);
+                        
         ReflectionTestUtils.setField(userService, "registrationEnabled", true);
     }
     
@@ -117,6 +127,35 @@ public class AuthenticationControllerTest {
             .andExpect(jsonPath("$.accessToken").exists())
             .andExpect(jsonPath("$.refreshToken").exists())
     		.andExpect(jsonPath("$.identityToken").exists());
+    }
+    
+    @Test
+    public void getAccount_with_missing_context() throws Exception {
+    	
+    	User user = userRepository.findByEmail(USER_EMAIL);
+    	assertNotNull(user);
+    	assertFalse(user.getContexts().isEmpty());
+    	user.getContexts().clear();
+    	userRepository.save(user);
+    	
+    	String req = new LoginRequestBuilder()
+    			.withEmail(USER_EMAIL)
+    			.withPassword(USER_PASSWORD)
+    			.buildAsJson();
+    	    	
+    	mockMvc
+    		.perform(
+				post("/sign-in")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(req)
+			)
+    		.andDo(print())
+            .andExpect(status().isFailedDependency())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.message").value("User has no context"))
+    		.andExpect(jsonPath("$.code").value("MissingDefaultContext"));
+
     }
     
     
