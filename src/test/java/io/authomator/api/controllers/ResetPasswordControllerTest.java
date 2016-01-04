@@ -38,8 +38,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.authomator.api.AuthomatorApiApplication;
 import io.authomator.api.builders.ForgotPasswordRequestBuilder;
 import io.authomator.api.builders.UserBuilder;
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
+import io.authomator.api.domain.repository.ContextRepository;
 import io.authomator.api.domain.repository.UserRepository;
+import io.authomator.api.domain.service.ContextService;
 import io.authomator.api.domain.service.UserService;
 import io.authomator.api.jwt.JwtService;
 import io.authomator.api.mail.MailService;
@@ -67,6 +70,12 @@ public class ResetPasswordControllerTest {
 	private UserService userService;
 	
 	@Autowired
+	private ContextService contextService;
+
+	@Autowired
+	private ContextRepository contextRepository;
+	
+	@Autowired
 	private MailService mailService;
 	
 	@Autowired 
@@ -89,6 +98,11 @@ public class ResetPasswordControllerTest {
         		.build();
         userRepository.save(user);
         
+        Context ctx = contextService.createDefaultContext(user);
+
+        user.getContexts().add(ctx);
+        userRepository.save(user);
+                
         mockTransport = Mockito.mock(MailTransport.class);
         ReflectionTestUtils.setField(mailService, "transport", mockTransport);
         
@@ -97,6 +111,7 @@ public class ResetPasswordControllerTest {
     @After
 	public void cleanup(){
     	userRepository.deleteAll();
+    	contextRepository.deleteAll();
     }
     
     /*
@@ -399,6 +414,34 @@ public class ResetPasswordControllerTest {
 			.andExpect(jsonPath("$.fieldErrors[0].field").value("email"))
 	        .andExpect(jsonPath("$.fieldErrors[0].message").value("Invalid or non existing email"))
 	        .andExpect(jsonPath("$.fieldErrors[0].code").value("CredentialsError"));
+    }
+    
+    @Test
+    public void reset_with_valid_token_but_user_has_no_context() throws Exception {
+
+    	User user = userRepository.findByEmail(USER_EMAIL);
+    	Assert.notNull(user);
+    	user.getContexts().clear();
+    	userRepository.save(user);
+    	
+    	JsonWebSignature token = jwtService.getForgotPasswordToken(user);
+    	    	
+    	Map<String, String> req = new HashMap<>();
+    	req.put("resetToken", token.getCompactSerialization());
+    	req.put("newPassword", "newpassword");
+    	
+    	mockMvc
+    		.perform(
+				post("/reset-password")
+				.accept(APPLICATION_JSON)
+				.contentType(APPLICATION_JSON)
+				.content(new ObjectMapper().writeValueAsString(req))
+			)
+    		.andDo(print())
+            .andExpect(status().isFailedDependency())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.message").value("User has no context"))
+	        .andExpect(jsonPath("$.code").value("MissingDefaultContext"));
     }
     
     @Test

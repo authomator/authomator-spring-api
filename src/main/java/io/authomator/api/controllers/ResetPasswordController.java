@@ -20,7 +20,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
+import io.authomator.api.domain.service.ContextService;
 import io.authomator.api.domain.service.UserService;
 import io.authomator.api.dto.ForgotPasswordRequest;
 import io.authomator.api.dto.GenericError;
@@ -28,6 +30,7 @@ import io.authomator.api.dto.ResetPasswordRequest;
 import io.authomator.api.dto.TokenReply;
 import io.authomator.api.dto.ValidationError;
 import io.authomator.api.exception.EmailTransportException;
+import io.authomator.api.exception.MissingDefaultContextException;
 import io.authomator.api.exception.NonSecureUrlException;
 import io.authomator.api.exception.UnauthorizedDomainException;
 import io.authomator.api.exception.UserNotFoundException;
@@ -39,6 +42,9 @@ public class ResetPasswordController {
 	
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	ContextService contextService;
 
 	@Autowired
 	JwtService jwtService;
@@ -69,10 +75,11 @@ public class ResetPasswordController {
 	@RequestMapping(value="/reset-password", method=RequestMethod.POST)
 	public TokenReply forgotPassword(			
 			@Valid @RequestBody() final ResetPasswordRequest req) throws InvalidJwtException, MalformedClaimException, 
-																			UserNotFoundException, JoseException {
+																			UserNotFoundException, JoseException, MissingDefaultContextException {
 		JwtClaims claims = jwtService.validateForgotToken(req.getResetToken());
 		User user = userService.resetPassword(claims.getSubject(), req.getNewPassword());
-		return jwtService.createTokensForUser(user);
+		Context defaultCtx = contextService.getDefaultContext(user);
+		return jwtService.createTokensForUser(user, defaultCtx);
 	}
 	
 	
@@ -116,5 +123,12 @@ public class ResetPasswordController {
 		ValidationError validationError = new ValidationError();
 		validationError.addFieldError("resetToken", "Invalid jwt token", "InvalidToken");
 		return validationError;
+	}
+	
+	@ExceptionHandler(MissingDefaultContextException.class)
+	@ResponseStatus(value=HttpStatus.FAILED_DEPENDENCY)
+	public GenericError missingDefaultCtx(MissingDefaultContextException ex){
+		logger.log(Level.WARN, String.format("A user tried to reset a password but has no default context"));
+		return new GenericError(new Exception("User has no context"), "MissingDefaultContext");
 	}
 }
