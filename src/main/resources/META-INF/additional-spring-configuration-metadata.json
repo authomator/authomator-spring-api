@@ -78,10 +78,5 @@
     "name": "io.authomator.api.mailtransport.mandrill.template.confirmemail",
     "type": "java.lang.String",
     "description": "A description for 'io.authomator.api.mailtransport.mandrill.template.confirmemail'"
-  },
-  {
-    "name": "io.authomator.api.contexts.enabled",
-    "type": "java.lang.String",
-    "description": "A description for 'io.authomator.api.contexts.enabled'"
   }
 ]}
