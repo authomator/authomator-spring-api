@@ -2,6 +2,7 @@ package io.authomator.api.domain.service;
 
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.exception.EmailConfirmationNotEnabledException;
+import io.authomator.api.exception.InvalidContextException;
 import io.authomator.api.exception.InvalidCredentialsException;
 import io.authomator.api.exception.RegistrationNotEnabledException;
 import io.authomator.api.exception.UserAlreadyExistsException;
@@ -14,7 +15,7 @@ public interface UserService {
 
 	User signIn(String email, String password) throws UserNotFoundException, InvalidCredentialsException;
 
-	User refresh(String id) throws UserNotFoundException;
+	User refresh(String userId, String contextId) throws UserNotFoundException, InvalidContextException;
 
 	User forgotPassword(String email) throws UserNotFoundException;
 

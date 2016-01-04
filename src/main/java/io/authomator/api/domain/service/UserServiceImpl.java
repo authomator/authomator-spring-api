@@ -9,6 +9,7 @@ import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.repository.UserRepository;
 import io.authomator.api.exception.EmailConfirmationNotEnabledException;
+import io.authomator.api.exception.InvalidContextException;
 import io.authomator.api.exception.InvalidCredentialsException;
 import io.authomator.api.exception.RegistrationNotEnabledException;
 import io.authomator.api.exception.UserAlreadyExistsException;
@@ -101,14 +102,19 @@ public class UserServiceImpl implements UserService {
 	 * @param id
 	 * @return User
 	 * @throws UserNotFoundException
+	 * @throws InvalidContextException 
 	 */
 	@Override
-	public User refresh(final String id) throws UserNotFoundException{
+	public User refresh(final String userId, final String contextId) throws UserNotFoundException, InvalidContextException{
 		
-		User user = userRepository.findOne(id);
+		User user = userRepository.findOne(userId);
 		
 		if (user == null){
-			throw new UserNotFoundException("mongoId: " + id);
+			throw new UserNotFoundException("mongoId: " + userId);
+		}
+		
+		if (!contextService.hasContext(user, contextId)) {
+			throw new InvalidContextException("User does not have access to the specified context or context not found");
 		}
 		
 		return user;

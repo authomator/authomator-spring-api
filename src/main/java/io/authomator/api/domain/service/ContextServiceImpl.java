@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import io.authomator.api.domain.entity.Context;
 import io.authomator.api.domain.entity.User;
 import io.authomator.api.domain.repository.ContextRepository;
+import io.authomator.api.exception.ContextNotFoundException;
 import io.authomator.api.exception.MissingDefaultContextException;
 
 @Service
@@ -40,6 +41,15 @@ public class ContextServiceImpl implements ContextService {
 		return createContext(owner, owner.getEmail());
 	}
 
+	
+	@Override
+	public Context findOne(final String contextId) throws ContextNotFoundException{
+		Context ctx = contextRepository.findOne(contextId);
+		if (ctx == null){
+			throw new ContextNotFoundException(contextId);
+		}
+		return ctx;
+	}
 
 	@Override
 	public Context getDefaultContext(User owner) throws MissingDefaultContextException {
@@ -52,4 +62,11 @@ public class ContextServiceImpl implements ContextService {
 		}
 		return ctx.get();
 	}
+	
+	@Override
+	public boolean hasContext(User user, final String contextId){
+		return user.getContexts().stream()
+			.anyMatch(c -> c.getId().equals(contextId));
+	}
+	
 }
